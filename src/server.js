@@ -20,10 +20,10 @@ mongoose.connect(`mongodb://${DB_HOST}/${DB_NAME}`, {
 });
 
 //x-powered-by desabilitado, para que do lado cliente
-//nÃ£o seja express medida de seguranÃ§a
+//não seja express medida de segurança
 app.disable("x-powered-by");
 
-app.use(cors()); //ConfiguraÃ§Ã£o para mermissÃ£o de origens de requisiÃ§Ã£o
+app.use(cors()); //Configuração para mermissão de origens de requisição
 app.use(express.json()); //Definito formato Json para troca de mensagens da API
 
 app.use(routes);
