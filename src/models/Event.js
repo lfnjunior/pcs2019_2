@@ -4,21 +4,22 @@ const AutoIncrement = require("mongoose-sequence")(mongoose);
 const EventSchema = new mongoose.Schema(
   {
     title: {
-      unique: true,
       type: String,
-      require: true
+      required: true
     },
     startDate: {
       type: Date,
-      require: true,
-      default: null
+      required: true
     },
-    endtDate: {
+    endDate: {
       type: Date,
-      require: true,
-      default: null
+      required: true
     },
     street: {
+      type: String,
+      required: true
+    },
+    neighborhood: {
       type: String,
       required: true
     },
@@ -34,17 +35,18 @@ const EventSchema = new mongoose.Schema(
       type: String,
       default: null
     },
-    status: {
-      type: String,
-      default: null
-    },
     eventType: {
+      required: true,
       type: mongoose.Schema.Types.ObjectId,
       ref: "EventType"
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
+    },
+    status: {
+      type: Boolean,
+      default: false
     }
   },
   { versionKey: false }

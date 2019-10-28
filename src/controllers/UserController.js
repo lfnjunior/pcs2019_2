@@ -4,63 +4,69 @@ const Utils = require("../utils/utils");
 
 module.exports = {
   async addUser(req, res) {
+    let msg = "";
     try {
-      const { username, email, password, birthdate, sex } = req.body;
-      let msg = "";
+      let newUser = {};
+      newUser = {
+        id: 0,
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+        birthdate: req.body.birthdate ? req.body.birthdate : null,
+        sex: req.body.sex ? req.body.sex : null
+      };
       console.log("Metodo invocado: addUser");
-      if (!email || !username || !password) {
-        msg = `description: Entrada Invalida - Algum parametro obrigatorio esta faltando, de acordo com a estrutura do Objeto User, os campos (username, email e senha) são obrigatórios:\n username: ${username}\n email: ${email}\n password: ${password}`");
-        console.log(msg);
-        return res.status(405).json({message:msg});
-      } else if (await User.findOne({ $or: [{ username: username }, { email: email }] })) {
-        msg = `description: Entrada Invalida - Algum dos campos (username / email) já está sendo utilizado por outra conta`
-        console.log(msg);
-        return res.status(405).json({message:msg});
-      }else {
-        const newUser = {};
-        newUser.username = username;
-        newUser.email = email;
-        newUser.password = password;
-        newUser.birthdate = birthdate ? birthdate : null;
-        newUser.sex = sex ? sex : null;
+      if (!newUser.email || !newUser.username || !newUser.password) {
+        msg =
+          `Algum parametro obrigatorio esta faltando, ` +
+          `de acordo com a estrutura do Objeto User, ` +
+          `os campos (username, email e senha) são ` +
+          `obrigatórios:\n ` +
+          `username: ${newUser.username}\n ` +
+          `email: ${newUser.email}\n ` +
+          `password: ${newUser.password}`;
+        Utils.retErr(res, req, 405, msg);
+      } else if (
+        await User.findOne({
+          $or: [{ username: newUser.username }, { email: newUser.email }]
+        })
+      ) {
+        msg = `Algum dos campos (username / email) já está sendo utilizado por outra conta`;
+        Utils.retErr(res, req, 405, msg);
+      } else {
         User.create(newUser, function(err, user) {
           if (err) {
-            msg = "description: Entrada Invalida - O Usuario nao foi inserido no banco";
-            console.log(msg+err.message);
-            return res.status(405).json({ message : msg });
+            msg = `O Usuario nao foi inserido no banco: ${err.message}`;
+            Utils.retErr(res, req, 405, msg);
           } else {
-            console.log(`Usuario ${user.username} foi gravado no banco de dados.`);
-            return res.status(201).json({
-              id: user.idUser,
-              username: user.username,
-              email: user.email,
-              password: "Sua senha está segura em nossa base de dados! :D",
-              birthdate: user.birthdate
-                ? Utils.formatDate(user.birthdate)
-                : undefined,
-              sex: user.sex ? sex : undefined
-            });
+            newUser.id = user.idUser;
+            Utils.retOk(res, req, 201, newUser);
           }
         });
       }
     } catch (err) {
-      console.log("Erro funcao addUser:\n"+JSON.stringify(err));
-      return res.status(405).json({ message : "description: Validation exception - tente novamente mais tarde" });
+      msg = "Função addUser: \n" + JSON.stringify(err);
+      Utils.retErr(res, req, 405, msg);
     }
   },
 
   async updateUsuario(req, res) {
+    let msg = "";
     try {
       const { id, username, email, password, birthdate, sex } = req.body;
-      let msg = "";
       console.log("Metodo invocado: updateUsuario");
       if (!id) {
-        msg =`description: Invalid ID supplied - Código identificador do Usuário não foi fornecido`;
-        return res.status(400).json({mensagem: msg});
+        msg = `Código identificador do Usuário não foi fornecido`;
+        Utils.retErr(res, req, 400, msg);
       } else if (!email || !username || !password) {
-        msg = `description: Validation exception - Algum parametro obrigatorio esta faltando, de acordo com a estrutura do Objeto User, os campos (username, email e senha) são obrigatórios:\n username: ${username}\n email: ${email}\n password: ${password}`");
-        console.log(msg);
-        return res.status(405).json({message:msg});
+        msg =
+          `Algum parametro obrigatorio esta faltando, ` +
+          `de acordo com a estrutura do Objeto User, ` +
+          `os campos (username, email e senha) são obrigatórios:\n ` +
+          `username: ${username}\n ` +
+          `email: ${email}\n ` +
+          `password: ${password}`;
+        Utils.retErr(res, req, 405, msg);
       } else if (
         await User.findOne({
           $and: [
@@ -69,9 +75,8 @@ module.exports = {
           ]
         })
       ) {
-        msg = `description: Entrada Invalida - Algum dos campos (username / email) já está sendo utilizado por outra conta`
-        console.log(msg);
-        return res.status(405).json({message:msg});
+        msg = `Algum dos campos (username / email) já está sendo utilizado por outra conta`;
+        Utils.retErr(res, req, 405, msg);
       } else {
         User.updateOne(
           { idUser: id },
@@ -87,17 +92,13 @@ module.exports = {
           },
           function(err, doc) {
             if (err) {
-              msg = `description: Validation exception - Banco de dados nao conseguiu executar a operacao: ${err.message}`
-              console.log();
-              return res.status(405).json({message:msg});
+              msg = `Banco de dados nao conseguiu executar a operacao: `;
+              Utils.retErr(res, req, 405, msg + err.message);
             } else if (doc.nModified === 0) {
-              msg = `description: Usuario não encontrado - Usuário com id (${id}) não existe no banco de dados.`
-              console.log(msg);
-              return res.status(404).json({message: msg});
+              msg = `Usuário com id (${id}) não existe no banco de dados.`;
+              Utils.retErr(res, req, 404, msg);
             } else {
-              console.log(`Usuario ${username} foi atualizado no banco de dados.`);
-              return res.status(200).json({
-                description: "Usuário Atualizado",
+              Utils.retOk(res, req, 200, {
                 id,
                 username: username,
                 email: email,
@@ -110,42 +111,29 @@ module.exports = {
         );
       }
     } catch (err) {
-      console.log("Erro funcao updateUsuario:\n"+JSON.stringify(err));
-      return res.status(405).json({ message : "description: Validation exception - tente novamente mais tarde" });
+      msg = "Função updateUsuario:\n" + JSON.stringify(err);
+      Utils.retErr(res, req, 405, msg);
     }
   },
 
   async getUserById(req, res) {
+    let msg = "";
     try {
       const { userId } = req.params;
       console.log("Metodo invocado: getUserById");
       if (!userId) {
-        return res.status(400).json({ description: "Invalid ID supplied" });
-      } else if (false) {
-        return res //POR QUE ESSE RETORNO?
-          .status(204)
-          .json({ description: "Nao a conteudo para ser entregue" });
+        msg = `Código identificador do Usuário não foi fornecido`;
+        Utils.retErr(res, req, 400, msg);
       } else {
         User.find({ idUser: userId }).exec((err, user) => {
           if (err) {
-            console.log(`Banco de dados nao conseguiu retornar a consulta:`);
-            console.log(err.message);
-            return res
-              .status(404)
-              .json({ description: "Usuário nao Encontrado" });
+            msg = "Banco de dados nao conseguiu retornar a consulta:";
+            Utils.retErr(res, req, 404, msg + err.message);
           } else if (user.length === 0) {
-            console.log(
-              `Nenhum usuario foi encontrado no banco de dados com a id ${userId}.`
-            );
-            return res
-              .status(404)
-              .json({ description: "Usuário nao Encontrado" });
+            msg = `Nenhum usuário foi encontrado no banco de dados com a id ${userId}.`;
+            Utils.retErr(res, req, 404, msg);
           } else {
-            console.log(
-              `Usuario ${user[0].username} foi consultado no banco de dados.`
-            );
-            return res.status(200).json({
-              description: "Operacão Realizada com Sucesso",
+            Utils.retOk(res, req, 200, {
               id: userId,
               username: user[0].username,
               email: user[0].email,
@@ -159,60 +147,49 @@ module.exports = {
         });
       }
     } catch (err) {
-      console.log("Erro funcao getUserById:");
-      console.log(err);
-      return res.status(404).json({ description: "Usuário nao Encontrado" });
+      msg = "Função getUserById:\n" + JSON.stringify(err);
+      Utils.retErr(res, req, 404, msg);
     }
   },
 
   async deleteUser(req, res) {
+    let msg = "";
     try {
       // Pra que serve?
       //const { api_key } = req.headers;
       const { userId } = req.params;
       console.log("Metodo invocado: deleteUser");
       if (!userId) {
-        return res.status(400).json({ description: "Invalid ID supplied" });
+        msg = `Código identificador do Usuário não foi fornecido`;
+        Utils.retErr(res, req, 400, msg);
       } else {
         User.deleteOne({ idUser: userId }, function(err, doc) {
           if (err) {
-            console.log(`Banco de dados nao conseguiu remover:`);
-            console.log(err.message);
-            return res
-              .status(404)
-              .json({ description: "Usuário nao Encontrado" });
+            msg = "Banco de dados nao conseguiu realizar a exclusão:";
+            Utils.retErr(res, req, 404, msg + err.message);
           } else if (doc.deletedCount === 0) {
-            console.log(
-              `Nenhum usuario foi encontrado no banco de dados com a id ${userId}.`
-            );
-            return res
-              .status(404)
-              .json({ description: "Usuário nao Encontrado" });
+            msg = `Nenhum usuário foi encontrado no banco de dados com a id ${userId}.`;
+            Utils.retErr(res, req, 404, msg);
           } else {
-            console.log(
-              `Usuario com ID ${userId} foi removido do banco de dados.`
-            );
-            return res
-              .status(200)
-              .json({ description: "Usuario apagado com sucesso" });
+            msg = `Usuario com ID ${userId} foi removido do banco de dados.`;
+            Utils.retOk(res, req, 200, { message: msg });
           }
         });
       }
     } catch (err) {
-      console.log("Erro funcao deleteUser:");
-      console.log(err);
-      return res.status(404).json({ description: "Usuário nao Encontrado" });
+      msg = "Função deleteUser:\n" + JSON.stringify(err);
+      Utils.retErr(res, req, 404, msg);
     }
   },
 
   async loginUser(req, res) {
+    let msg = "";
     try {
       const { login, senha } = req.body;
       console.log("Metodo invocado: loginUser");
       if (!login || !senha) {
-        return res
-          .status(400)
-          .json({ description: "Invalid username/senha supplied" });
+        msg = `Invalid username/senha supplied`;
+        Utils.retErr(res, req, 400, msg);
       } else {
         User.findOne({
           $or: [{ username: login }, { email: login }]
@@ -220,35 +197,17 @@ module.exports = {
           .select("+password")
           .exec(function(err, user) {
             if (err) {
-              console.log(`Banco de dados nao conseguiu consultar:`);
-              console.log(err.message);
-              return res
-                .status(400)
-                .json({ description: "Invalid username/password supplied" });
+              msg = "Banco de dados nao conseguiu realizar a autenticação:";
+              Utils.retErr(res, req, 400, msg + err.message);
             } else if (!user) {
-              console.log(
-                `O parametro login = ${login} nao e o username nem o email de nenhum usuario cadastrado`
-              );
-              return res
-                .status(400)
-                .json({ description: "Invalid username/password supplied" });
+              msg = `O parametro login = ${login} não pertence a nenhum usuário cadastrado`;
+              Utils.retErr(res, req, 400, msg);
             } else {
-              console.log(
-                `Usuario login = ${login} esta cadastrado no sistema`
-              );
-              console.log(user);
               if (!(senha === user.password)) {
-                console.log(
-                  `Mas a senha = ${senha} nao corresponde a senha do usuario = ${
-                    user.password
-                  }`
-                );
-                return res
-                  .status(400)
-                  .json({ description: "Invalid password" });
+                msg = `Senha incorreta`;
+                Utils.retErr(res, req, 400, msg);
               } else {
-                console.log(`Login efetuado com sucesso`);
-                return res.status(200).json({
+                Utils.retOk(res, req, 200, {
                   description: "Usuario logado com sucesso"
                   //token: Token.generateToken({ idUser: user._id })
                 });
@@ -257,15 +216,13 @@ module.exports = {
           });
       }
     } catch (err) {
-      console.log("Erro funcao loginUser:");
-      console.log(err);
-      return res
-        .status(400)
-        .json({ description: "Invalid username/password supplied" });
+      msg = "Função loginUser:\n" + JSON.stringify(err);
+      Utils.retErr(res, req, 404, msg);
     }
   },
 
   async getUsers(req, res) {
+    let msg = "";
     try {
       let page = req.query.page;
       let limit = req.query.limit;
@@ -281,31 +238,23 @@ module.exports = {
         .limit(limit)
         .exec((err, users) => {
           if (err) {
-            console.log("Erro funcao loginUser:");
-            console.log(err);
-            return res
-              .status(400)
-              .json({ description: "Users searched failed!" });
+            msg = "Users searched failed!";
+            Utils.retErr(res, req, 400, msg);
           } else if (users.length === 0) {
-            return res
-              .status(400)
-              .json({ description: `Page ${page} exceeded existing amount!` });
+            msg = `Page ${page} exceeded existing amount!`;
+            Utils.retErr(res, req, 400, msg);
           } else {
-            return res
-              .status(200)
-              .json(
-                Utils.replaceStr(
-                  users,
-                  ["idUser", "T00:00:00.000Z"],
-                  ["id", ""]
-                )
-              );
+            users = Utils.replaceStr(
+              users,
+              ["idUser", "T00:00:00.000Z"],
+              ["id", ""]
+            );
+            Utils.retOk(res, req, 200, users);
           }
         });
     } catch (err) {
-      console.log("Erro funcao loginUser:");
-      console.log(err);
-      return res.status(400).json({ description: "Users query failed!" });
+      msg = "Função getUsers:\n" + JSON.stringify(err);
+      Utils.retErr(res, req, 400, msg);
     }
   }
 

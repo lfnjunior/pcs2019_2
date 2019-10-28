@@ -1,3 +1,9 @@
-/tipoEvento
+get /tipoEvento e /event
 400	
 Invalid ID supplied
+
+retorno 204
+GET User
+
+Objeto evento 
+campo (subconjunto) user obrigatório?

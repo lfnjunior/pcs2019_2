@@ -3,8 +3,8 @@ const rateLimit = require("express-rate-limit");
 
 //importaÃ§Ã£o dos Controllers
 const UserController = require("./controllers/UserController");
-
 const EventTypeController = require("./controllers/EventTypeController");
+const EventController = require("./controllers/EventController");
 
 const routes = express.Router();
 
@@ -25,5 +25,7 @@ routes.post("/user/login", loginAccountLimiter, UserController.loginUser);
 
 routes.post("/tipoEvento", EventTypeController.addEventType);
 routes.get("/tipoEvento", EventTypeController.getTipoEvento);
+
+routes.post("/event", EventController.addEvent);
 
 module.exports = routes;
