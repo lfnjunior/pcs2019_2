@@ -1,0 +1,674 @@
+swagger: '2.0'
+info:
+  description: >-
+    Facilitar a integração social de pessoas através de exercícios físicos
+    feitos coletivamente
+  version: 1.0.0
+  title: Honoo
+  termsOfService: 'http://honoo.io/terms/'
+  contact:
+    email: honoo@swagger.io
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+host: 'b5els.sse.codesandbox.io'
+basePath: /
+tags:
+  - name: user
+    description: Operacões com os usuarios
+  - name: event
+    description: Operações com os Eventos
+  - name: participant
+    description: Tudo Sobre os usuarios participantes dos Eventos
+  - name: mensagem
+    description: Mensagens dos usuarios nos Eventos
+schemes:
+  - https
+paths:
+  /user:
+    post:
+      tags:
+        - user
+      summary: Cadastrar um novo usuario
+      description: ''
+      operationId: addUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Necessário um objeto Usuario
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '201':
+          description: Usuario Criado
+          schema:
+            $ref: '#/definitions/User'
+        '405':
+          description: Entrada Invalida
+      x-swagger-router-controller: User
+    put:
+      tags:
+        - user
+      summary: Atualizar um usuario
+      description: ''
+      operationId: updateUsuario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: ''
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '200':
+          description: Usuário Atualizado
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Usuario não encontrado
+        '405':
+          description: Validation exception
+      x-swagger-router-controller: User
+    get:
+      tags:
+        - user
+      summary: Lista de Usuarios
+      description: ''
+      operationId: consultaUsuarios
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Usuários Listados
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '400':
+          description: Nenhum usuario encontrado
+        '405':
+          description: Validation exception
+      x-swagger-router-controller: User
+  '/user/{userId}':
+    get:
+      tags:
+        - user
+      summary: Enconte um usuario pelo seu ID
+      description: ''
+      operationId: getUserById
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          in: path
+          description: Id do usuario que quer retorno
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Operacão Realizada com Sucesso
+          schema:
+            $ref: '#/definitions/User'
+        '204':
+          description: Não a conteudo para ser entregue
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Usuario não Encontrado
+      x-swagger-router-controller: User
+    delete:
+      tags:
+        - user
+      summary: Deletar Usuario
+      description: ''
+      operationId: deleteUser
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: userId
+          in: path
+          description: Id do Usuario que deseja deletar
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Usuario apagado com sucesso
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Usuario não Encontrado
+      x-swagger-router-controller: User
+  /user/login:
+    post:
+      tags:
+        - user
+      summary: Logar usuario dentro do Sistema
+      description: ''
+      operationId: loginUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Necessário um objeto User
+          required: true
+          schema:
+            $ref: '#/definitions/login'
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              type: integer
+              format: int32
+              description: calls per hour allowed by the user
+            X-Expires-After:
+              type: string
+              format: date-time
+              description: date in UTC when token expires
+          schema:
+            type: string
+        '400':
+          description: Invalid username/password supplied
+      x-swagger-router-controller: User
+  /event:
+    get:
+      tags:
+        - event
+      summary: Listar todos os Eventos
+      description: ''
+      operationId: getEvent
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: Operacão Realizada com Sucesso!
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Event'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Evento não encontrado
+        '405':
+          description: Validation exception
+      x-swagger-router-controller: Event
+    post:
+      tags:
+        - event
+      summary: Adicione um novo Evento
+      description: ''
+      operationId: addEvent
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Necessário um objeto Evento
+          required: true
+          schema:
+            $ref: '#/definitions/Event'
+      responses:
+        '201':
+          description: Evento Criado
+        '405':
+          description: Entrada Invalida
+      x-swagger-router-controller: Event
+    put:
+      tags:
+        - event
+      summary: Atualizar um Evento
+      description: ''
+      operationId: updateEvent
+      consumes:
+        - application/json
+        - application/xml
+      produces:
+        - application/xml
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: ''
+          required: true
+          schema:
+            $ref: '#/definitions/Event'
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Evento não encontrado
+        '405':
+          description: Validation exception
+      x-swagger-router-controller: Event
+  '/event/{eventId}':
+    get:
+      tags:
+        - event
+      summary: Enconte um Evento pelo seu ID
+      description: Retorna apenas o tipo de evento do mesmo id enviado
+      operationId: getEventById
+      produces:
+        - application/json
+      parameters:
+        - name: eventId
+          in: path
+          description: Id do Evento que quer retorno
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Operacão Realizada com Sucesso
+          schema:
+            $ref: '#/definitions/Event'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Evento não Encontrado
+      x-swagger-router-controller: Event
+    delete:
+      tags:
+        - event
+      summary: Deletar Algum Evento
+      description: ''
+      operationId: deleteEvent
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: eventId
+          in: path
+          description: Id do Evento que deseja deletar
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Evento não Encontrado
+      x-swagger-router-controller: Event
+  /event/search:
+    get:
+      tags:
+        - event
+      operationId: eventSearchGET
+      parameters:
+        - name: rdate
+          in: query
+          description: >
+            Um período relativo para o relatório, como "Hoje" ou "Última
+            semana".
+             Para um intervalo exato, use `start_date` e` end_date`.
+          required: false
+          type: string
+        - name: start_date
+          in: query
+          description: >
+            A data inicial do relatório. Deve ser usado junto com `end_date`.
+            Este parâmetro é incompatível com `rdate`.
+          required: false
+          type: string
+          format: date
+        - name: end_date
+          in: query
+          description: |
+            A data final do relatório. Deve ser usado junto com o `start_date`.
+             Este parâmetro é incompatível com `rdate`.
+          required: false
+          type: string
+          format: date
+        - name: event_type
+          in: query
+          description: |
+            Um tipo de evento para o relatorio.
+          required: false
+          type: string
+          format: string
+      responses:
+        '200':
+          description: Operacão Realizada com Sucesso
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Event'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Evento não Encontrado
+      x-swagger-router-controller: Event
+  /mensagem:
+    post:
+      tags:
+        - mensagem
+      summary: Adicione uma nova Mensagem
+      description: ''
+      operationId: addMensagem
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Necessário um objeto Evento
+          required: true
+          schema:
+            $ref: '#/definitions/Message'
+      responses:
+        '201':
+          description: Mensagem Criada
+        '405':
+          description: Entrada Invalida
+      x-swagger-router-controller: Mensagem
+    put:
+      tags:
+        - mensagem
+      summary: Atualizar uma mensagem
+      description: ''
+      operationId: updateMessage
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: ''
+          required: true
+          schema:
+            $ref: '#/definitions/Message'
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Mensagem não encontrada
+        '405':
+          description: Validation exception
+      x-swagger-router-controller: Mensagem
+  '/mensagem/{msgId}':
+    delete:
+      tags:
+        - mensagem
+      summary: Deletar Algum Mensagem
+      description: ''
+      operationId: deleteMensagem
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: msgId
+          in: path
+          description: Id da mensagem que deseja deletar
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Mensagem não Encontrada
+      x-swagger-router-controller: Mensagem
+  /tipoEvento:
+    get:
+      tags:
+        - eventtype
+      summary: Listar todos os Tipo de Eventos
+      description: ''
+      operationId: getTipoEvento
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: Operacão Realizada com Sucesso!
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EventType'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Tipo de evento não encontrado
+        '405':
+          description: Validation exception
+      x-swagger-router-controller: Eventtype
+definitions:
+  Message:
+    type: object
+    properties:
+      Id:
+        type: integer
+        format: int64
+      participant:
+        $ref: '#/definitions/Participant'
+      date:
+        type: string
+        format: date-time
+      message:
+        type: string
+    example:
+      date: '2000-01-23T04:56:07.000+00:00'
+      Id: 0
+      message: message
+      participant:
+        registrationDate: '2000-01-23T04:56:07.000+00:00'
+        event:
+          endDate: '2000-01-23T04:56:07.000+00:00'
+          city: city
+          street: street
+          description: description
+          id: 0
+          neighborhood: neighborhood
+          eventType:
+            name: name
+            id: 6
+          title: Corrida das 18h
+          user:
+            password: password
+            birthdate: '2000-01-23'
+            sex: sex
+            id: 0
+            email: email
+            username: username
+          startDate: '2000-01-23T04:56:07.000+00:00'
+          referencePoint: referencePoint
+          status: true
+        user:
+          password: password
+          birthdate: '2000-01-23'
+          sex: sex
+          id: 0
+          email: email
+          username: username
+  login:
+    type: object
+    properties:
+      login:
+        type: string
+      senha:
+        type: string
+  Participant:
+    type: object
+    properties:
+      event:
+        $ref: '#/definitions/Event'
+      user:
+        $ref: '#/definitions/User'
+      registrationDate:
+        type: string
+        format: date-time
+    xml:
+      name: Participant
+    example:
+      registrationDate: '2000-01-23T04:56:07.000+00:00'
+      event:
+        endDate: '2000-01-23T04:56:07.000+00:00'
+        city: city
+        street: street
+        description: description
+        id: 0
+        neighborhood: neighborhood
+        eventType:
+          name: name
+          id: 6
+        title: Corrida das 18h
+        user:
+          password: password
+          birthdate: '2000-01-23'
+          sex: sex
+          id: 0
+          email: email
+          username: username
+        startDate: '2000-01-23T04:56:07.000+00:00'
+        referencePoint: referencePoint
+        status: true
+      user:
+        password: password
+        birthdate: '2000-01-23'
+        sex: sex
+        id: 0
+        email: email
+        username: username
+  EventType:
+    type: object
+    required:
+      - name
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+    xml:
+      name: EventType
+    example:
+      name: name
+      id: 6
+  User:
+    type: object
+    required:
+      - email
+      - password
+      - username
+    properties:
+      id:
+        type: integer
+        format: int64
+      username:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      birthdate:
+        type: string
+        format: date
+      sex:
+        type: string
+    example:
+      password: password
+      birthdate: '2000-01-23'
+      sex: sex
+      id: 0
+      email: email
+      username: username
+  Event:
+    type: object
+    required:
+      - city
+      - endDate
+      - eventType
+      - neighborhood
+      - startDate
+      - street
+      - title
+    properties:
+      id:
+        type: integer
+        format: int64
+      title:
+        type: string
+        example: Corrida das 18h
+      startDate:
+        type: string
+        format: date-time
+      endDate:
+        type: string
+        format: date-time
+      street:
+        type: string
+      neighborhood:
+        type: string
+      city:
+        type: string
+      referencePoint:
+        type: string
+      description:
+        type: string
+      eventType:
+        $ref: '#/definitions/EventType'
+      user:
+        $ref: '#/definitions/User'
+      status:
+        type: boolean
+    example:
+      endDate: '2000-01-23T04:56:07.000+00:00'
+      city: city
+      street: street
+      description: description
+      id: 0
+      neighborhood: neighborhood
+      eventType:
+        name: name
+        id: 6
+      title: Corrida das 18h
+      user:
+        password: password
+        birthdate: '2000-01-23'
+        sex: sex
+        id: 0
+        email: email
+        username: username
+      startDate: '2000-01-23T04:56:07.000+00:00'
+      referencePoint: referencePoint
+      status: true
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'

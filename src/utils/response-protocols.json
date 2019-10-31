@@ -1,0 +1,229 @@
+{
+  "paths": {
+    "/user": {
+      "methods": {
+        "post": {
+          "responses": {
+            "201": {
+              "description": "Usuario Criado"
+            },
+            "405": {
+              "description": "Entrada Invalida"
+            }
+          }
+        },
+        "put": {
+          "responses": {
+            "200": {
+              "description": "Usuário Atualizado"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Usuario não encontrado"
+            },
+            "405": {
+              "description": "Validation exception"
+            }
+          }
+        }
+      }
+    },
+    "/user/:userId": {
+      "methods": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Operacão Realizada com Sucesso"
+            },
+            "204": {
+              "description": "Não a conteudo para ser entregue"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Usuario não Encontrado"
+            }
+          }
+        },
+        "delete": {
+          "responses": {
+            "200": {
+              "description": "Usuario apagado com sucesso"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Usuario não Encontrado"
+            }
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "methods": {
+        "post": {
+          "responses": {
+            "200": {
+              "description": "successful operation"
+            },
+            "400": {
+              "description": "Invalid username/password supplied"
+            }
+          }
+        }
+      }
+    },
+    "/event": {
+      "methods": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Operacão Realizada com Sucesso!"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Evento não encontrado"
+            },
+            "405": {
+              "description": "Validation exception"
+            }
+          }
+        },
+        "post": {
+          "responses": {
+            "201": {
+              "description": "Evento Criado"
+            },
+            "405": {
+              "description": "Entrada Invalida"
+            }
+          }
+        },
+        "put": {
+          "responses": {
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Evento não encontrado"
+            },
+            "405": {
+              "description": "Validation exception"
+            }
+          }
+        }
+      }
+    },
+    "/event/:eventId": {
+      "methods": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Operacão Realizada com Sucesso"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Evento não Encontrado"
+            }
+          }
+        },
+        "delete": {
+          "responses": {
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Evento não Encontrado"
+            }
+          }
+        }
+      }
+    },
+    "/event/search": {
+      "methods": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Operacão Realizada com Sucesso"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Evento não Encontrado"
+            }
+          }
+        }
+      }
+    },
+    "/mensagem": {
+      "methods": {
+        "post": {
+          "responses": {
+            "201": {
+              "description": "Mensagem Criada"
+            },
+            "405": {
+              "description": "Entrada Invalida"
+            }
+          }
+        },
+        "put": {
+          "responses": {
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Mensagem não encontrada"
+            },
+            "405": {
+              "description": "Validation exception"
+            }
+          }
+        }
+      }
+    },
+    "/mensagem/:msgId": {
+      "methods": {
+        "delete": {
+          "responses": {
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Mensagem não Encontrada"
+            }
+          }
+        }
+      }
+    },
+    "/tipoEvento": {
+      "methods": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Operacão Realizada com Sucesso!"
+            },
+            "400": {
+              "description": "Invalid ID supplied"
+            },
+            "404": {
+              "description": "Tipo de evento não encontrado"
+            },
+            "405": {
+              "description": "Validation exception"
+            }
+          }
+        }
+      }
+    }
+  }
+}

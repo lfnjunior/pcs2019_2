@@ -15,15 +15,15 @@ module.exports = {
         birthdate: req.body.birthdate ? req.body.birthdate : null,
         sex: req.body.sex ? req.body.sex : null
       };
-      console.log("Metodo invocado: addUser");
+      console.log("\n Metodo invocado: addUser");
       if (!newUser.email || !newUser.username || !newUser.password) {
         msg =
           `Algum parametro obrigatorio esta faltando, ` +
           `de acordo com a estrutura do Objeto User, ` +
           `os campos (username, email e senha) são ` +
-          `obrigatórios:\n ` +
-          `username: ${newUser.username}\n ` +
-          `email: ${newUser.email}\n ` +
+          `obrigatórios: ` +
+          `username: ${newUser.username}  ` +
+          `email: ${newUser.email}  ` +
           `password: ${newUser.password}`;
         Utils.retErr(res, req, 405, msg);
       } else if (
@@ -40,6 +40,8 @@ module.exports = {
             Utils.retErr(res, req, 405, msg);
           } else {
             newUser.id = user.idUser;
+            if (!newUser.sex) newUser.sex = undefined;
+            if (!newUser.birthdate) newUser.birthdate = undefined;
             Utils.retOk(res, req, 201, newUser);
           }
         });
@@ -54,7 +56,7 @@ module.exports = {
     let msg = "";
     try {
       const { id, username, email, password, birthdate, sex } = req.body;
-      console.log("Metodo invocado: updateUsuario");
+      console.log("\n Metodo invocado: updateUsuario");
       if (!id) {
         msg = `Código identificador do Usuário não foi fornecido`;
         Utils.retErr(res, req, 400, msg);
@@ -120,7 +122,7 @@ module.exports = {
     let msg = "";
     try {
       const { userId } = req.params;
-      console.log("Metodo invocado: getUserById");
+      console.log("\n Metodo invocado: getUserById");
       if (!userId) {
         msg = `Código identificador do Usuário não foi fornecido`;
         Utils.retErr(res, req, 400, msg);
@@ -158,7 +160,7 @@ module.exports = {
       // Pra que serve?
       //const { api_key } = req.headers;
       const { userId } = req.params;
-      console.log("Metodo invocado: deleteUser");
+      console.log("\n Metodo invocado: deleteUser");
       if (!userId) {
         msg = `Código identificador do Usuário não foi fornecido`;
         Utils.retErr(res, req, 400, msg);
@@ -186,7 +188,7 @@ module.exports = {
     let msg = "";
     try {
       const { login, senha } = req.body;
-      console.log("Metodo invocado: loginUser");
+      console.log("\n Metodo invocado: loginUser");
       if (!login || !senha) {
         msg = `Invalid username/senha supplied`;
         Utils.retErr(res, req, 400, msg);

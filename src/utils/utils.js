@@ -1,3 +1,5 @@
+const protocols = require("./response-protocols");
+
 module.exports = {
   formatDate(date) {
     var d = new Date(date),
@@ -18,25 +20,18 @@ module.exports = {
   },
 
   retErr(res, req, statusCode, msg) {
-    let path = req.path;
-    let method = req.method;
-    if (statusCode === 400) msg = `Invalid ID supplied - ${msg}`;
-    else if (method === "POST" && statusCode === 405)
-      msg = `Entrada Invalida - ${msg}`;
-    else if (method === "PUT" && statusCode === 405)
-      msg = `Validation exception - ${msg}`;
-    else if (method === "PUT" && statusCode === 404) {
-      if (path === "/user") msg = `Usuario não encontrado - ${msg}`;
-      else if (path === "/event") msg = `Evento não encontrado - ${msg}`;
-      else if (path === "/mensagem") msg = `Mensagem não encontrada - ${msg}`;
-    }
-    msg = "Description:" + msg;
-    console.log(statusCode + " - " + msg);
-    return res.status(statusCode).json({ message: msg });
+    let path = req.route.path;
+    let method = req.method.toLowerCase();
+    let desc =
+      protocols.paths[`${path}`].methods[`${method}`].responses[`${statusCode}`]
+        .description;
+    console.log(desc);
+    console.log(msg);
+    return res.status(statusCode).json({ description: desc, message: msg });
   },
 
   retOk(res, req, statusCode, obj) {
-    let path = req.path;
+    let path = req.route.path;
     let method = req.method;
     let nomeObj = null;
     let acao = null;
@@ -55,6 +50,9 @@ module.exports = {
         nomeObj = "Evento";
         break;
       case "/user":
+        nomeObj = "Usuário";
+        break;
+      case "/user/:userId":
         nomeObj = "Usuário";
         break;
       case "/user/login":
