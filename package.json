@@ -15,7 +15,9 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-rate-limit": "^5.0.0",
+    "isemail": "3.2.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "2.24.0",
     "mongoose": "^5.7.3",
     "mongoose-sequence": "^5.2.2"
   },

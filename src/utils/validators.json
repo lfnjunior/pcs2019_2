@@ -1,0 +1,69 @@
+{
+   "functions": {
+      "Event": {
+         "bodyAttributes": [
+            {
+               "name": "title",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "startDate",
+               "required": true,
+               "type": "date-time"
+            },
+            {
+               "name": "endDate",
+               "required": true,
+               "type": "date-time"
+            },
+            {
+               "name": "street",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "neighborhood",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "city",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "eventType",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "referencePoint",
+               "required": false,
+               "type": "string"
+            },
+            {
+               "name": "description",
+               "required": false,
+               "type": "string"
+            },
+            {
+               "name": "user",
+               "required": false,
+               "type": "objectReference",
+               "user": { "name": "id" }
+            },
+            {
+               "name": "status",
+               "required": false,
+               "type": "boolean"
+            }
+         ]
+      }
+   }
+}
