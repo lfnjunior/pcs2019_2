@@ -2,11 +2,13 @@ const User = require('../models/User')
 const Token = require('../config/Token')
 const Utils = require('../utils/utils')
 const Msgs = require('../utils/messages')
+const OB = 'User'
+const OBJ = 'usuário'
 
 module.exports = {
    async addUser(req, res) {
       try {
-         let newUser = await Utils.validateInput(req, 'User', false)
+         let newUser = await Utils.validateInput(req, OB, false)
          if (!newUser.validationMessage) {
             let userExist = await User.findOne({ $or: [{ username: newUser.username }, { email: newUser.email }] })
             if (userExist) {
@@ -14,7 +16,7 @@ module.exports = {
             } else {
                User.create(newUser, function(err, user) {
                   if (err) {
-                     Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', 'usuário', err.message))
+                     Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', OBJ, err.message))
                   } else {
                      Utils.retOk(req, res, 201, Utils.returnUser(user, false))
                   }
@@ -28,7 +30,7 @@ module.exports = {
 
    async updateUsuario(req, res) {
       try {
-         let updtUser = await Utils.validateInput(req, 'User', true)
+         let updtUser = await Utils.validateInput(req, OB, true)
          if (!updtUser.validationMessage) {
             let userExist = await User.findOne({
                $and: [{ $or: [{ username: updtUser.username }, { email: updtUser.email }] }, { idUser: { $ne: updtUser.id } }]
@@ -51,9 +53,9 @@ module.exports = {
                   },
                   function(err, doc) {
                      if (err) {
-                        Utils.retErr(req, res, 405, Msgs.msg(2, 'atualizar', 'usuário', err.message))
+                        Utils.retErr(req, res, 405, Msgs.msg(2, 'atualizar', OBJ, err.message))
                      } else if (doc.nModified === 0 && doc.n === 0) {
-                        Utils.retErr(req, res, 404, Msgs.msg(5, 'Usuário', updtUser.idUser))
+                        Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, updtUser.idUser))
                      } else {
                         Utils.retOk(req, res, 200, Utils.returnUser(updtUser, true))
                      }
@@ -70,13 +72,13 @@ module.exports = {
       try {
          const { userId } = req.params
          if (!userId) {
-            Utils.retErr(req, res, 400, Msgs.msg(3, 'Usuário'))
+            Utils.retErr(req, res, 400, Msgs.msg(3, OBJ))
          } else {
             User.find({ idUser: userId }).exec((err, user) => {
                if (err) {
-                  Utils.retErr(req, res, 404, Msgs.msg(2, 'consultar', 'usuário', err.message))
+                  Utils.retErr(req, res, 404, Msgs.msg(2, 'consultar', OBJ, err.message))
                } else if (user.length === 0) {
-                  Utils.retErr(req, res, 404, Msgs.msg(5, 'Usuário', userId))
+                  Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, userId))
                } else {
                   Utils.retOk(req, res, 200, Utils.returnUser(user[0], true))
                }
@@ -91,15 +93,15 @@ module.exports = {
       try {
          const { userId } = req.params
          if (!userId) {
-            Utils.retErr(req, res, 400, Msgs.msg(3, 'Usuário'))
+            Utils.retErr(req, res, 400, Msgs.msg(3, OBJ))
          } else {
             User.deleteOne({ idUser: userId }, function(err, doc) {
                if (err) {
-                  Utils.retErr(req, res, 404, Msgs.msg(2, 'remover', 'usuário', err.message))
+                  Utils.retErr(req, res, 404, Msgs.msg(2, 'remover', OBJ, err.message))
                } else if (doc.deletedCount === 0) {
-                  Utils.retErr(req, res, 404, Msgs.msg(5, 'Usuário', userId))
+                  Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, userId))
                } else {
-                  Utils.retOk(req, res, 200, { message: Msgs.msg(6, 'Usuário', userId) })
+                  Utils.retOk(req, res, 200, { message: Msgs.msg(6, OBJ, userId) })
                }
             })
          }
@@ -118,9 +120,9 @@ module.exports = {
                .select('+password')
                .exec(function(err, user) {
                   if (err) {
-                     Utils.retErr(req, res, 400, Msgs.msg(2, 'consultar', 'usuário', err.message))
+                     Utils.retErr(req, res, 400, Msgs.msg(2, 'consultar', OBJ, err.message))
                   } else if (!user) {
-                     Utils.retErr(req, res, 400, Msgs.msg(7, auth.login, 'usuário'))
+                     Utils.retErr(req, res, 400, Msgs.msg(7, auth.login, OBJ))
                   } else {
                      if (!(auth.senha === user.password)) {
                         Utils.retErr(req, res, 400, `Senha incorreta`)
@@ -145,11 +147,7 @@ module.exports = {
          page = page > 0 ? page : 1
          limit = limit > 0 ? limit : 100
          let skip = limit * (page - 1)
-         var usersProjection = {
-            //password: false,
-            _id: false
-         }
-         User.find({}, usersProjection)
+         User.find({}, { _id: false })
             .skip(skip)
             .limit(limit)
             .exec((err, users) => {

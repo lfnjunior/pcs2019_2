@@ -1,82 +1,44 @@
-const EventType = require("../models/EventType");
-const Utils = require("../utils/utils");
+const EventType = require('../models/EventType')
+const Utils = require('../utils/utils')
+const Msgs = require('../utils/messages')
+const OB = 'EventType'
+const OBJ = 'tipo de evento'
 
 module.exports = {
-  async addEventType(req, res) {
-    try {
-      const { name } = req.body;
-      console.log("Metodo invocado: addEventType");
-      if (!name) {
-        console.log("Parametro name obrigatorio esta faltando :");
-        console.log(name);
-        return res.status(405).json({
-          description: "Entrada Invalida",
-          message:
-            "Algum parametro obrigatorio esta faltando, de acordo com a estrutura do Objeto EventType, os campos (name) são obrigatórios"
-        });
-      } else if (await EventType.findOne({ name })) {
-        console.log("name ja esta cadastrado");
-        return res.status(405).json({
-          description: "Entrada Invalida",
-          message: "Name não está disponível"
-        });
-      } else {
-        const newEventType = {};
-        newEventType.name = name;
-        EventType.create(newEventType, function(err, eventType) {
-          if (err) {
-            console.log("O Tipo de Evento nao foi inserido no banco");
-            return res.status(405).json({ description: "Entrada Invalida" });
-          } else {
-            console.log(
-              `Usuario ${eventType.name} foi gravado no banco de dados.`
-            );
-            return res.status(201).json({
-              description: "Tipo de Evento criado",
-              id: eventType.idEventType,
-              name: eventType.name
-            });
-          }
-        });
-      }
-    } catch (err) {
-      console.log("Erro funcao addEventType:");
-      console.log(err);
-      return res.status(405).json({ description: "Entrada Invalida" });
-    }
-  },
+   async addEventType(req, res) {
+      try {
+         const { name } = req.body
 
-  async getTipoEvento(req, res) {
-    try {
-      console.log("Metodo invocado: getTipoEvento");
-      var eventTypeProjection = {
-        _id: false
-      };
-      EventType.find({}, eventTypeProjection).exec((err, eventTypes) => {
-        if (err) {
-          console.log("Erro ao realizar consulta no banco de dados");
-          console.log(err);
-          return res.status(405).json({ description: "Validation exception" });
-        } else if (eventTypes.length === 0) {
-          console.log(
-            "Não foi encontrado nenhum tipo de evento cadastrado na base de daados"
-          );
-          return res.status(404).json({
-            description: "Tipo de evento não encontrado!"
-          });
-        } else {
-          console.log(
-            `A consulta vai retornar ${eventTypes.length} tipos de eventos`
-          );
-          return res
-            .status(200)
-            .json(Utils.replaceStr(eventTypes, ["idEventType"], ["id"]));
-        }
-      });
-    } catch (err) {
-      console.log("Erro funcao getTipoEvento:");
-      console.log(err);
-      return res.status(405).json({ description: "Validation exception" });
-    }
-  }
-};
+         if (name) {
+            let eventTypeExist = await EventType.findOne({ name })
+            if (!eventTypeExist) {
+               EventType.create({ name: name }, function(err, eventType) {
+                  if (err) {
+                     Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', OBJ, err.message))
+                  } else {
+                     Utils.retOk(req, res, 201, Utils.returnEventType(eventType))
+                  }
+               })
+            } else Utils.retErr(req, res, 405, Msgs.msg(1, 'name'))
+         } else Utils.retErr(req, res, 405, 'Atributo name não foi informado')
+      } catch (err) {
+         Utils.retErr(req, res, 405, Msgs.msg(3, 'addEventType', err.message))
+      }
+   },
+
+   async getTipoEvento(req, res) {
+      try {
+         EventType.find({}, { _id: false }).exec((err, eventTypes) => {
+            if (err) {
+               Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
+            } else if (eventTypes.length === 0) {
+               Utils.retErr(req, res, 404, Msgs.msg(9, OBJ, err.message))
+            } else {
+               Utils.retOk(req, res, 200, Utils.returnEventTypes(eventTypes))
+            }
+         })
+      } catch (err) {
+         Utils.retErr(req, res, 404, Msgs.msg(3, 'getTipoEvento', err.message))
+      }
+   }
+}

@@ -14,6 +14,10 @@ module.exports = {
       return [year, month, day].join('-')
    },
 
+   formatDateTime(date) {
+      return moment(date).format('YYYY-MM-DDTHH:mm:ss.sss+HH:mm')
+   },
+
    replaceStr(json, oldStr, newStr) {
       let str = JSON.stringify(json)
       for (let i = 0; i < oldStr.length; i++) {
@@ -95,34 +99,54 @@ module.exports = {
       }
    },
 
+   returnEventTypes(eventTypes) {
+      let eventTypesRet = []
+      if (eventTypes.length > 0) {
+         for (let i = 0; i < eventTypes.length; i++) {
+            eventTypesRet[i] = this.returnEventType(eventTypes[i])
+         }
+      } else {
+         eventTypesRet = eventTypes
+      }
+      return eventTypesRet
+   },
+
+   returnEvents(events) {
+      let eventsRet = []
+      if (events.length > 0) {
+         for (let i = 0; i < events.length; i++) {
+            eventsRet[i] = this.returnEvent(events[i], events[i].eventType, events[i].user)
+         }
+      } else {
+         eventsRet = events
+      }
+      return eventsRet
+   },
+
    returnEvent(event, eventType, user) {
       let eventRet = {
          id: event.idEvent,
          title: event.title,
-         startDate: event.startDate,
-         endDate: event.endDate,
+         startDate: this.formatDateTime(event.startDate),
+         endDate: this.formatDateTime(event.endDate),
          city: event.city,
          street: event.street,
          neighborhood: event.neighborhood,
          referencePoint: event.referencePoint ? event.referencePoint : undefined,
          description: event.description ? event.description : undefined,
          status: event.status ? event.status : undefined,
-         eventType: {
-            id: eventType.idEventType,
-            name: eventType.name
-         },
-         user: user
-            ? {
-                 id: user.idUser,
-                 username: user.username,
-                 email: user.email,
-                 //password: null,
-                 birthdate: user.birthdate ? this.formatDate(user.birthdate) : undefined,
-                 sex: user.sex ? user.sex : undefined
-              }
-            : undefined
+         eventType: this.returnEventType(eventType),
+         user: user ? this.returnUser(user, false) : undefined
       }
       return eventRet
+   },
+
+   returnEventType(eventType) {
+      let eventTypeRet = {
+         id: eventType.idEventType,
+         name: eventType.name
+      }
+      return eventTypeRet
    },
 
    returnUser(user, showPassword) {

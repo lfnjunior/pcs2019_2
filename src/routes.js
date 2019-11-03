@@ -7,19 +7,24 @@ const EventController = require('./controllers/EventController')
 
 const routes = express.Router()
 
-const authMiddleware = require('./middlewares/Auth')
+const auth = require('./midllewares/Auth')
 
 //rotas da API
 routes.post('/user', UserController.addUser)
-routes.put('/user', authMiddleware, UserController.updateUsuario)
-routes.get('/user', authMiddleware, UserController.getUsers)
-routes.get('/user/:userId', authMiddleware, UserController.getUserById)
-routes.delete('/user/:userId', authMiddleware, UserController.deleteUser)
+routes.put('/user', auth, UserController.updateUsuario)
+routes.get('/user', auth, UserController.getUsers)
+routes.get('/user/:userId', auth, UserController.getUserById)
+routes.delete('/user/:userId', auth, UserController.deleteUser)
 routes.post('/user/login', UserController.loginUser)
 
-routes.post('/tipoEvento', authMiddleware, EventTypeController.addEventType)
-routes.get('/tipoEvento', authMiddleware, EventTypeController.getTipoEvento)
+routes.post('/tipoEvento', auth, EventTypeController.addEventType)
+routes.get('/tipoEvento', auth, EventTypeController.getTipoEvento)
 
-routes.post('/event', authMiddleware, EventController.addEvent)
+routes.get('/event', auth, EventController.getEvent)
+routes.post('/event', auth, EventController.addEvent)
+routes.put('/event', auth, EventController.updateEvent)
+routes.get('/event/search', auth, EventController.eventSearch)
+routes.get('/event/:eventId', auth, EventController.getEventById)
+routes.delete('/event/:eventId', auth, EventController.deleteEvent)
 
 module.exports = routes
