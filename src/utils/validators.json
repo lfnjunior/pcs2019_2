@@ -120,7 +120,7 @@
                "type": "string"
             },
             {
-               "name": "name",
+               "name": "senha",
                "required": true,
                "type": "string"
             }

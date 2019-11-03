@@ -165,15 +165,15 @@ module.exports = {
          case '/event/search':
             nomeObj = 'Evento'
             break
-         case '/user':
-            nomeObj = 'Usuário'
-            break
          case '/user/:userId':
             nomeObj = 'Usuário'
             break
          case '/user/login':
             nomeObj = 'Usuário'
             acao = 'autenticad'
+            break
+         case '/user':
+            nomeObj = 'Usuário'
             break
          case '/mensagem':
             nomeObj = 'Mensagem'
@@ -183,23 +183,24 @@ module.exports = {
             break
       }
 
-      switch (method) {
-         case 'POST':
-            acao = 'gravad'
-            break
-         case 'PUT':
-            acao = 'atualizad'
-            break
-         case 'DELETE':
-            acao = 'deletad'
-            break
-         case 'GET':
-            acao = 'consultad'
-            break
-         default:
-            break
+      if (!acao) {
+         switch (method) {
+            case 'POST':
+               acao = 'gravad'
+               break
+            case 'PUT':
+               acao = 'atualizad'
+               break
+            case 'DELETE':
+               acao = 'deletad'
+               break
+            case 'GET':
+               acao = 'consultad'
+               break
+            default:
+               break
+         }
       }
-
       if (nomeObj && acao) msg = statusCode + ' - ' + nomeObj + ' foi ' + acao + final + ' com sucesso!'
 
       console.log(msg)

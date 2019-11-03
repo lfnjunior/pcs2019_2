@@ -1,5 +1,5 @@
 module.exports = {
-   msg(key, text1, text2, text3) {
+   msg(key, text1 = '', text2 = '', text3 = '') {
       let msgRet = ''
       switch (key) {
          case 1:
@@ -21,7 +21,7 @@ module.exports = {
             msgRet = `${text1} com id (${text2}) foi removido do banco de dados.`
             break
          case 7:
-            msgRet = `${text1} não pertence a nenhum ${text2} cadastrado`
+            msgRet = `Atributo ${text1} = ${text2} não pertence a nenhum ${text3} cadastrado`
             break
          default:
             break

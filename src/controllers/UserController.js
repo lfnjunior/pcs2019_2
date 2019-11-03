@@ -26,7 +26,7 @@ module.exports = {
       }
    },
 
-   async updateUsuário(req, res) {
+   async updateUsuario(req, res) {
       try {
          let updtUser = await Utils.validateInput(req, 'User', true)
          if (!updtUser.validationMessage) {
@@ -132,9 +132,9 @@ module.exports = {
                      }
                   }
                })
-         } else Utils.retErr(req, res, 404, auth.validationMessage)
+         } else Utils.retErr(req, res, 400, auth.validationMessage)
       } catch (err) {
-         Utils.retErr(req, res, 404, Msgs.msg(3, 'loginUser', err.message))
+         Utils.retErr(req, res, 400, Msgs.msg(3, 'loginUser', err.message))
       }
    },
 
