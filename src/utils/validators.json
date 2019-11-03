@@ -1,5 +1,5 @@
 {
-   "functions": {
+   "objects": {
       "Event": {
          "bodyAttributes": [
             {
@@ -55,13 +55,93 @@
             {
                "name": "user",
                "required": false,
-               "type": "objectReference",
-               "user": { "name": "id" }
+               "type": "objectReference"
             },
             {
                "name": "status",
                "required": false,
                "type": "boolean"
+            }
+         ]
+      },
+      "User": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "username",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "email",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "password",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "birthdate",
+               "required": false,
+               "type": "date"
+            },
+            {
+               "name": "sex",
+               "required": false,
+               "type": "string"
+            }
+         ]
+      },
+      "EventType": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "name",
+               "required": true,
+               "type": "string"
+            }
+         ]
+      },
+      "Login": {
+         "bodyAttributes": [
+            {
+               "name": "login",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "name",
+               "required": true,
+               "type": "string"
+            }
+         ]
+      },
+      "Participant": {
+         "bodyAttributes": [
+            {
+               "name": "registrationDate",
+               "required": true,
+               "type": "date-time"
+            },
+            {
+               "name": "user",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "event",
+               "required": true,
+               "type": "objectReference"
             }
          ]
       }

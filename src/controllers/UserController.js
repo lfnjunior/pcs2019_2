@@ -1,225 +1,144 @@
 const User = require('../models/User')
 const Token = require('../config/Token')
 const Utils = require('../utils/utils')
+const Msgs = require('../utils/messages')
 
 module.exports = {
    async addUser(req, res) {
-      let msg = ''
       try {
-         let newUser = {}
-         newUser = {
-            id: 0,
-            username: req.body.username,
-            email: req.body.email,
-            password: req.body.password,
-            birthdate: req.body.birthdate ? req.body.birthdate : null,
-            sex: req.body.sex ? req.body.sex : null
-         }
-         console.log('\n Metodo invocado: addUser')
-         if (!newUser.email || !newUser.username || !newUser.password) {
-            msg =
-               `Algum parametro obrigatorio esta faltando, ` +
-               `de acordo com a estrutura do Objeto User, ` +
-               `os campos (username, email e senha) são ` +
-               `obrigatórios: ` +
-               `username: ${newUser.username}  ` +
-               `email: ${newUser.email}  ` +
-               `password: ${newUser.password}`
-            Utils.retErr(req, res, 405, msg)
-         } else if (
-            await User.findOne({
-               $or: [{ username: newUser.username }, { email: newUser.email }]
-            })
-         ) {
-            msg = `Algum dos campos (username / email) já está sendo utilizado por outra conta`
-            Utils.retErr(req, res, 405, msg)
-         } else {
-            User.create(newUser, function(err, user) {
-               if (err) {
-                  msg = `O Usuario nao foi inserido no banco: ${err.message}`
-                  Utils.retErr(req, res, 405, msg)
-               } else {
-                  newUser.id = user.idUser
-                  if (!newUser.sex) newUser.sex = undefined
-                  if (!newUser.birthdate) newUser.birthdate = undefined
-                  Utils.retOk(req, res, 201, newUser)
-               }
-            })
-         }
+         let newUser = await Utils.validateInput(req, 'User', false)
+         if (!newUser.validationMessage) {
+            let userExist = await User.findOne({ $or: [{ username: newUser.username }, { email: newUser.email }] })
+            if (userExist) {
+               Utils.retErr(req, res, 405, Msgs.msg(1, 'username / email'))
+            } else {
+               User.create(newUser, function(err, user) {
+                  if (err) {
+                     Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', 'usuário', err.message))
+                  } else {
+                     Utils.retOk(req, res, 201, Utils.returnUser(user, false))
+                  }
+               })
+            }
+         } else Utils.retErr(req, res, 405, newUser.validationMessage)
       } catch (err) {
-         msg = 'Função addUser: \n' + JSON.stringify(err)
-         Utils.retErr(req, res, 405, msg)
+         Utils.retErr(req, res, 405, Msgs.msg(3, 'addUser', err.message))
       }
    },
 
-   async updateUsuario(req, res) {
-      let msg = ''
+   async updateUsuário(req, res) {
       try {
-         const { id, username, email, password, birthdate, sex } = req.body
-         console.log('\n Metodo invocado: updateUsuario')
-         if (!id) {
-            msg = `Código identificador do Usuário não foi fornecido`
-            Utils.retErr(req, res, 400, msg)
-         } else if (!email || !username || !password) {
-            msg =
-               `Algum parametro obrigatorio esta faltando, ` +
-               `de acordo com a estrutura do Objeto User, ` +
-               `os campos (username, email e senha) são obrigatórios:\n ` +
-               `username: ${username}\n ` +
-               `email: ${email}\n ` +
-               `password: ${password}`
-            Utils.retErr(req, res, 405, msg)
-         } else if (
-            await User.findOne({
-               $and: [{ $or: [{ username: username }, { email: email }] }, { idUser: { $ne: id } }]
+         let updtUser = await Utils.validateInput(req, 'User', true)
+         if (!updtUser.validationMessage) {
+            let userExist = await User.findOne({
+               $and: [{ $or: [{ username: updtUser.username }, { email: updtUser.email }] }, { idUser: { $ne: updtUser.id } }]
             })
-         ) {
-            msg = `Algum dos campos (username / email) já está sendo utilizado por outra conta`
-            Utils.retErr(req, res, 405, msg)
-         } else {
-            User.updateOne(
-               { idUser: id },
-               {
-                  username: username,
-                  email: email,
-                  password: password,
-                  birthdate: !birthdate ? null : birthdate,
-                  sex: !sex ? null : sex
-               },
-               {
-                  upsert: false
-               },
-               function(err, doc) {
-                  if (err) {
-                     msg = `Banco de dados nao conseguiu executar a operacao: `
-                     Utils.retErr(req, res, 405, msg + err.message)
-                  } else if (doc.nModified === 0) {
-                     msg = `Usuário com id (${id}) não existe no banco de dados.`
-                     Utils.retErr(req, res, 404, msg)
-                  } else {
-                     Utils.retOk(req, res, 200, {
-                        id,
-                        username: username,
-                        email: email,
-                        password: 'Sua senha está segura em nossa base de dados! :D',
-                        birthdate: birthdate ? Utils.formatDate(birthdate) : undefined,
-                        sex: sex ? sex : undefined
-                     })
+
+            if (userExist) {
+               Utils.retErr(req, res, 405, Msgs.msg(1, 'username / email'))
+            } else {
+               User.updateOne(
+                  { idUser: updtUser.idUser },
+                  {
+                     username: updtUser.username,
+                     email: updtUser.email,
+                     password: updtUser.password,
+                     birthdate: !updtUser.birthdate ? null : updtUser.birthdate,
+                     sex: !updtUser.sex ? null : updtUser.sex
+                  },
+                  {
+                     upsert: false
+                  },
+                  function(err, doc) {
+                     if (err) {
+                        Utils.retErr(req, res, 405, Msgs.msg(2, 'atualizar', 'usuário', err.message))
+                     } else if (doc.nModified === 0 && doc.n === 0) {
+                        Utils.retErr(req, res, 404, Msgs.msg(5, 'Usuário', updtUser.idUser))
+                     } else {
+                        Utils.retOk(req, res, 200, Utils.returnUser(updtUser, true))
+                     }
                   }
-               }
-            )
-         }
+               )
+            }
+         } else Utils.retErr(req, res, 405, updtUser.validationMessage)
       } catch (err) {
-         msg = 'Função updateUsuario:\n' + JSON.stringify(err)
-         Utils.retErr(req, res, 405, msg)
+         Utils.retErr(req, res, 405, Msgs.msg(3, 'updateUsuario', err.message))
       }
    },
 
    async getUserById(req, res) {
-      let msg = ''
       try {
          const { userId } = req.params
-         console.log('\n Metodo invocado: getUserById')
          if (!userId) {
-            msg = `Código identificador do Usuário não foi fornecido`
-            Utils.retErr(req, res, 400, msg)
+            Utils.retErr(req, res, 400, Msgs.msg(3, 'Usuário'))
          } else {
             User.find({ idUser: userId }).exec((err, user) => {
                if (err) {
-                  msg = 'Banco de dados nao conseguiu retornar a consulta:'
-                  Utils.retErr(req, res, 404, msg + err.message)
+                  Utils.retErr(req, res, 404, Msgs.msg(2, 'consultar', 'usuário', err.message))
                } else if (user.length === 0) {
-                  msg = `Nenhum usuário foi encontrado no banco de dados com a id ${userId}.`
-                  Utils.retErr(req, res, 404, msg)
+                  Utils.retErr(req, res, 404, Msgs.msg(5, 'Usuário', userId))
                } else {
-                  Utils.retOk(req, res, 200, {
-                     id: userId,
-                     username: user[0].username,
-                     email: user[0].email,
-                     password: user[0].password,
-                     birthdate: user[0].birthdate ? Utils.formatDate(user[0].birthdate) : undefined,
-                     sex: user[0].sex ? user[0].sex : undefined
-                  })
+                  Utils.retOk(req, res, 200, Utils.returnUser(user[0], true))
                }
             })
          }
       } catch (err) {
-         msg = 'Função getUserById:\n' + JSON.stringify(err)
-         Utils.retErr(req, res, 404, msg)
+         Utils.retErr(req, res, 405, Msgs.msg(3, 'getUserById', err.message))
       }
    },
 
    async deleteUser(req, res) {
-      let msg = ''
       try {
-         // Pra que serve?
-         //const { api_key } = req.headers;
          const { userId } = req.params
-         console.log('\n Metodo invocado: deleteUser')
          if (!userId) {
-            msg = `Código identificador do Usuário não foi fornecido`
-            Utils.retErr(req, res, 400, msg)
+            Utils.retErr(req, res, 400, Msgs.msg(3, 'Usuário'))
          } else {
             User.deleteOne({ idUser: userId }, function(err, doc) {
                if (err) {
-                  msg = 'Banco de dados nao conseguiu realizar a exclusão:'
-                  Utils.retErr(req, res, 404, msg + err.message)
+                  Utils.retErr(req, res, 404, Msgs.msg(2, 'remover', 'usuário', err.message))
                } else if (doc.deletedCount === 0) {
-                  msg = `Nenhum usuário foi encontrado no banco de dados com a id ${userId}.`
-                  Utils.retErr(req, res, 404, msg)
+                  Utils.retErr(req, res, 404, Msgs.msg(5, 'Usuário', userId))
                } else {
-                  msg = `Usuario com ID ${userId} foi removido do banco de dados.`
-                  Utils.retOk(req, res, 200, { message: msg })
+                  Utils.retOk(req, res, 200, { message: Msgs.msg(6, 'Usuário', userId) })
                }
             })
          }
       } catch (err) {
-         msg = 'Função deleteUser:\n' + JSON.stringify(err)
-         Utils.retErr(req, res, 404, msg)
+         Utils.retErr(req, res, 405, Msgs.msg(3, 'deleteUser', err.message))
       }
    },
 
    async loginUser(req, res) {
-      let msg = ''
       try {
-         const { login, senha } = req.body
-         console.log('\n Metodo invocado: loginUser')
-         if (!login || !senha) {
-            msg = `Invalid username/senha supplied`
-            Utils.retErr(req, res, 400, msg)
-         } else {
+         let auth = await Utils.validateInput(req, 'Login', false)
+         if (!auth.validationMessage) {
             User.findOne({
-               $or: [{ username: login }, { email: login }]
+               $or: [{ username: auth.login }, { email: auth.login }]
             })
                .select('+password')
                .exec(function(err, user) {
                   if (err) {
-                     msg = 'Banco de dados nao conseguiu realizar a autenticação:'
-                     Utils.retErr(req, res, 400, msg + err.message)
+                     Utils.retErr(req, res, 400, Msgs.msg(2, 'consultar', 'usuário', err.message))
                   } else if (!user) {
-                     msg = `O parametro login = ${login} não pertence a nenhum usuário cadastrado`
-                     Utils.retErr(req, res, 400, msg)
+                     Utils.retErr(req, res, 400, Msgs.msg(7, auth.login, 'usuário'))
                   } else {
-                     if (!(senha === user.password)) {
-                        msg = `Senha incorreta`
-                        Utils.retErr(req, res, 400, msg)
+                     if (!(auth.senha === user.password)) {
+                        Utils.retErr(req, res, 400, `Senha incorreta`)
                      } else {
                         Utils.retOk(req, res, 200, {
-                           description: 'Usuario logado com sucesso'
-                           //token: Token.generateToken({ idUser: user._id })
+                           description: 'Usuário logado com sucesso',
+                           token: Token.generateToken({ idUser: user._id })
                         })
                      }
                   }
                })
-         }
+         } else Utils.retErr(req, res, 404, auth.validationMessage)
       } catch (err) {
-         msg = 'Função loginUser:\n' + JSON.stringify(err)
-         Utils.retErr(req, res, 404, msg)
+         Utils.retErr(req, res, 404, Msgs.msg(3, 'loginUser', err.message))
       }
    },
 
    async getUsers(req, res) {
-      let msg = ''
       try {
          let page = req.query.page
          let limit = req.query.limit
@@ -227,7 +146,7 @@ module.exports = {
          limit = limit > 0 ? limit : 100
          let skip = limit * (page - 1)
          var usersProjection = {
-            password: false,
+            //password: false,
             _id: false
          }
          User.find({}, usersProjection)
@@ -235,34 +154,16 @@ module.exports = {
             .limit(limit)
             .exec((err, users) => {
                if (err) {
-                  msg = 'Users searched failed!'
-                  Utils.retErr(req, res, 400, msg)
+                  Utils.retErr(req, res, 400, 'Users searched failed!')
                } else if (users.length === 0) {
-                  msg = `Page ${page} exceeded existing amount!`
-                  Utils.retErr(req, res, 400, msg)
+                  Utils.retErr(req, res, 400, `Page ${page} exceeded existing amount!`)
                } else {
                   users = Utils.replaceStr(users, ['idUser', 'T00:00:00.000Z'], ['id', ''])
                   Utils.retOk(req, res, 200, users)
                }
             })
       } catch (err) {
-         msg = 'Função getUsers:\n' + JSON.stringify(err)
-         Utils.retErr(req, res, 400, msg)
+         Utils.retErr(req, res, 404, Msgs.msg(3, 'getUsers', err.message))
       }
    }
-
-   // get => /user/filter
-   // async filter(req,res) {
-   //   try {
-   //     const { op, dt } = req.query
-   //     User.find( { "deletedAt" : null, "createdAt" : { "$gte" : new Date(dt).toISOString() } }).exec((err, users)=>{
-   //       if (err) {
-   //         return res.status(400).json( { description : 'Users searched failed!' } )
-   //       }
-   //       return res.json(users)
-   //     })
-   //   } catch (description) {
-   //     return res.status(400).json({ description: "Users query failed!" })
-   //   }
-   // }
 }

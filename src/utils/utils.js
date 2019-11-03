@@ -28,23 +28,35 @@ module.exports = {
       let type = null
       let inputReq = {}
       let dateFormats = []
-      let attributes = inputs.functions[`${objectName}`].bodyAttributes
+      let attributes = inputs.objects[`${objectName}`].bodyAttributes
       for (let i = 0; i < attributes.length; i++) {
          attribute = attributes[i].name
          type = attributes[i].type
 
-         if (attribute === 'id' && idIsRequired) isRequired = true
-         else isRequired = attributes[i].required
+         if (attribute === 'id' && idIsRequired) {
+            isRequired = true
+         } else {
+            isRequired = attributes[i].required
+         }
 
-         if (attribute === 'id' && !idIsRequired) inputReq[attribute] = null
-         else if (type === 'objectReference' && isRequired && req.body[attribute]['id'] === undefined)
+         if (attribute === 'id' && !idIsRequired) {
+            inputReq[attribute] = undefined
+         } else if (type === 'objectReference' && isRequired && req.body[attribute]['id'] === undefined) {
             return { validationMessage: `Parâmetro ${attribute}.id é obrigatório.` }
+         }
 
-         if (isRequired && req.body[attribute] === undefined) return { validationMessage: `Parâmetro ${attribute} é obrigatório.` }
-         else if (!isRequired && req.body[attribute] === undefined) inputReq[attribute] = null
-         else {
-            if (type === 'objectReference') inputReq[attribute] = req.body[attribute].id
-            else inputReq[attribute] = req.body[attribute]
+         if (isRequired && req.body[attribute] === undefined) {
+            return { validationMessage: `Parâmetro ${attribute} é obrigatório.` }
+         } else if (!isRequired && req.body[attribute] === undefined) {
+            inputReq[attribute] = null
+         } else {
+            if (type === 'objectReference') {
+               inputReq[attribute] = req.body[attribute].id
+            } else if (attribute === 'id' && idIsRequired) {
+               inputReq[attribute + objectName] = req.body[attribute]
+            } else {
+               inputReq[attribute] = req.body[attribute]
+            }
          }
 
          if (isRequired && type === 'date-time') {
@@ -104,13 +116,25 @@ module.exports = {
                  id: user.idUser,
                  username: user.username,
                  email: user.email,
-                 password: 'A senha está segura em nossa base de dados!',
+                 //password: null,
                  birthdate: user.birthdate ? this.formatDate(user.birthdate) : undefined,
                  sex: user.sex ? user.sex : undefined
               }
             : undefined
       }
       return eventRet
+   },
+
+   returnUser(user, showPassword) {
+      let userRet = {
+         id: user.idUser,
+         username: user.username,
+         email: user.email,
+         password: showPassword ? user.password : undefined,
+         birthdate: user.birthdate ? this.formatDate(user.birthdate) : undefined,
+         sex: user.sex ? user.sex : undefined
+      }
+      return userRet
    },
 
    retErr(req, res, statusCode, msg) {

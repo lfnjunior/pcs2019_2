@@ -6,15 +6,13 @@ const Event = require('../models/Event')
 module.exports = {
    async addEvent(req, res) {
       try {
-         let newEvent = {}
-         newEvent = await Utils.validateInput(req, 'Event', false)
+         let newEvent = await Utils.validateInput(req, 'Event', false)
 
          if (!newEvent.validationMessage) {
             EventType.findOne({ idEventType: newEvent.eventType }).exec(function(err, eventType) {
                newEvent.eventType = Utils.relationIdMongo(req, res, 405, 'EventType', err, eventType, newEvent.eventType)
 
                if (!newEvent.user) {
-                  console.log(' teste 1')
                   Event.create(newEvent, function(err, event) {
                      if (err) Utils.retErr(req, res, 405, { msg: `O Evento não foi gravado ${err.message}` })
 
@@ -23,8 +21,6 @@ module.exports = {
                } else {
                   User.findOne({ idUser: newEvent.user }).exec(function(err, user) {
                      newEvent.user = Utils.relationIdMongo(req, res, 405, 'User', err, user, newEvent.user)
-                     console.log(' teste 2')
-                     console.log(newEvent)
 
                      Event.create(newEvent, function(err, event) {
                         if (err) Utils.retErr(req, res, 405, { msg: `O Evento não foi gravado ${err.message}` })
@@ -36,7 +32,7 @@ module.exports = {
             })
          } else Utils.retErr(req, res, 405, { msg: newEvent.validationMessage })
       } catch (err) {
-         Utils.retErr(req, res, 405, { msg: `Erro funcao addUser : ${err.message}` })
+         Utils.retErr(req, res, 405, { msg: `Erro funcao addEvent : ${err.message}` })
       }
    },
 
