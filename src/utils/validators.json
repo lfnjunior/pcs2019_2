@@ -144,6 +144,30 @@
                "type": "objectReference"
             }
          ]
+      },
+      "Message": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "date",
+               "required": true,
+               "type": "date-time"
+            },
+            {
+               "name": "participant",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "message",
+               "required": true,
+               "type": "string"
+            }
+         ]
       }
    }
 }
