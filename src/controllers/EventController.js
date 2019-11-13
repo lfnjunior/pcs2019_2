@@ -10,191 +10,193 @@ const OBJ = 'evento'
 module.exports = {
    async addEvent(req, res) {
       try {
+         //validação da entrada
          let newEvent = await Utils.validateInput(req, OB, false)
+         if (newEvent.validationMessage) {
+            return Utils.retErr(res, newEvent.validationMessage)
+         }
 
-         if (!newEvent.validationMessage) {
-            EventType.findOne({ idEventType: newEvent.eventType }).exec(function(err, eventType) {
-               newEvent.eventType = Utils.relationIdMongo(req, res, 405, 'EventType', err, eventType, newEvent.eventType)
+         //consulta id do EventType
+         let eventType = await EventType.findOne({ idEventType: newEvent.eventTypeId })
+         if (!eventType) {
+            return Utils.retErr(res, Msgs.msg(5, 'EventType', newEvent.eventTypeId))
+         }
+         newEvent.eventTypeId = eventType._id
 
-               if (!newEvent.user) {
-                  Event.create(newEvent, function(err, event) {
-                     if (err) Utils.retErr(req, res, 405, Msgs.msg(2, 'adicionar', OBJ, err.message))
+         //consulta id do User
+         let user = await User.findOne({ idUser: newEvent.ownerId })
+         if (!user) {
+            return Utils.retErr(res, Msgs.msg(5, 'User', newEvent.eventTypeId))
+         }
+         newEvent.ownerId = user._id
 
-                     Utils.retOk(req, res, 201, Utils.returnEvent(event, eventType, null))
-                  })
-               } else {
-                  User.findOne({ idUser: newEvent.user }).exec(function(err, user) {
-                     newEvent.user = Utils.relationIdMongo(req, res, 405, 'User', err, user, newEvent.user)
-
-                     Event.create(newEvent, function(err, event) {
-                        if (err) Utils.retErr(req, res, 405, Msgs.msg(2, 'adicionar', OBJ, err.message))
-
-                        Utils.retOk(req, res, 201, Utils.returnEvent(event, eventType, user))
-                     })
-                  })
-               }
-            })
-         } else Utils.retErr(req, res, 405, newEvent.validationMessage)
+         //Grava Event
+         Event.create(newEvent, function(err, event) {
+            if (err) {
+               return Utils.retErr(res, Msgs.msg(2, 'adicionar', OBJ, err.message))
+            }
+            return Utils.retOk(req, res, { message: 'Evento criado com sucesso' })
+         })
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'addEvent', err.message))
+         return Utils.retErr(res, Msgs.msg(3, 'addEvent', err.message))
       }
    },
 
    async updateEvent(req, res) {
       try {
+         //validação da entrada
          let updtEvent = await Utils.validateInput(req, OB, true)
+         if (updtEvent.validationMessage) {
+            return Utils.retErr(res, updtEvent.validationMessage)
+         }
 
-         if (!updtEvent.validationMessage) {
-            EventType.findOne({ idEventType: updtEvent.eventType }).exec(function(err, eventType) {
-               updtEvent.eventType = Utils.relationIdMongo(req, res, 405, 'EventType', err, eventType, updtEvent.eventType)
+         //consulta id do EventType
+         let eventType = await EventType.findOne({ idEventType: updtEvent.eventTypeId })
+         if (!eventType) {
+            return Utils.retErr(res, Msgs.msg(5, 'EventType', updtEvent.eventTypeId))
+         }
+         updtEvent.eventTypeId = eventType._id
 
-               if (!updtEvent.user) {
-                  Event.updateOne({ idEvent: updtEvent.idEvent }, updtEvent, { upsert: false }, function(err, doc) {
-                     if (err) {
-                        Utils.retErr(req, res, 405, Msgs.msg(2, 'atualizar', OBJ, err.message))
-                     } else if (doc.nModified === 0 && doc.n === 0) {
-                        Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, updtEvent.idEvent))
-                     } else {
-                        Utils.retOk(req, res, 200, Utils.returnEvent(updtEvent, eventType, null))
-                     }
-                  })
-               } else {
-                  User.findOne({ idUser: updtEvent.user }).exec(function(err, user) {
-                     updtEvent.user = Utils.relationIdMongo(req, res, 405, 'User', err, user, updtEvent.user)
-                     Event.updateOne({ idEvent: updtEvent.idEvent }, updtEvent, { upsert: false }, function(err, doc) {
-                        if (err) {
-                           Utils.retErr(req, res, 405, Msgs.msg(2, 'atualizar', OBJ, err.message))
-                        } else if (doc.nModified === 0 && doc.n === 0) {
-                           Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, updtEvent.idEvent))
-                        } else {
-                           Utils.retOk(req, res, 200, Utils.returnEvent(updtEvent, eventType, user))
-                        }
-                     })
-                  })
-               }
-            })
-         } else Utils.retErr(req, res, 405, updtEvent.validationMessage)
+         //consulta id do User
+         let user = await User.findOne({ idUser: updtEvent.ownerId })
+         if (!user) {
+            return Utils.retErr(res, Msgs.msg(5, 'User', updtEvent.eventTypeId))
+         }
+         updtEvent.ownerId = user._id
+
+         //consulta id do Event
+         let event = await Event.findOne({ idEvent: updtEvent.id }, '_id')
+         if (!event) {
+            return Utils.retErr(res, Msgs.msg(5, 'Event', updtEvent.eventTypeId))
+         }
+         updtEvent.participant = event.participant
+
+         //atualiza Event
+         Event.updateOne({ idEvent: updtEvent.idEvent }, updtEvent, { upsert: false }, function(err, doc) {
+            if (err) {
+               return Utils.retErr(res, Msgs.msg(2, 'atualizar', OBJ, err.message))
+            } else if (doc.nModified === 0 && doc.n === 0) {
+               return Utils.retErr(res, Msgs.msg(5, OBJ, updtEvent.idEvent))
+            } else {
+               return Utils.retOk(req, res, Utils.returnEvent(updtEvent, eventType, user))
+            }
+         })
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'updateEvent', err.message))
+         return Utils.retErr(res, Msgs.msg(3, 'updateEvent', err.message))
       }
    },
 
    async deleteEvent(req, res) {
       try {
          const { eventId } = req.params
-         console.log('Metodo invocado: deleteEvent')
-         if (eventId) {
-            Event.deleteOne({ idEvent: eventId }, function(err, doc) {
-               if (err) {
-                  Utils.retErr(req, res, 404, Msgs.msg(2, 'deletar', OBJ, err.message))
-               } else if (doc.deletedCount === 0) {
-                  Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, eventId))
-               } else {
-                  Utils.retOk(req, res, 200, { message: Msgs.msg(6, OBJ, eventId) })
-               }
-            })
-         } else Utils.retErr(req, res, 405, Msgs.msg(4, OBJ))
+         if (!eventId) {
+            return Utils.retErr(res, Msgs.msg(4, OBJ))
+         }
+         Event.deleteOne({ idEvent: eventId }, function(err, doc) {
+            if (err) {
+               return Utils.retErr(res, Msgs.msg(2, 'deletar', OBJ, err.message))
+            } else if (doc.deletedCount === 0) {
+               return Utils.retErr(res, Msgs.msg(5, OBJ, eventId))
+            } else {
+               return Utils.retOk(req, res, { message: Msgs.msg(6, OBJ, eventId) })
+            }
+         })
       } catch (err) {
-         Utils.retErr(req, res, 404, Msgs.msg(3, 'deleteEvent', err.message))
+         return Utils.retErr(res, Msgs.msg(3, 'deleteEvent', err.message))
       }
    },
 
    async getEventById(req, res) {
       try {
          const { eventId } = req.params
-         if (eventId) {
-            Event.findOne({ idEvent: eventId })
-               .populate('user')
-               .populate('eventType')
-               .exec((err, event) => {
-                  if (err) {
-                     Utils.retErr(req, res, 404, Msgs.msg(2, 'consultar', OBJ, err.message))
-                  } else {
-                     if (err) Utils.retErr(req, res, 404, Msgs.msg(2, 'consultar', OBJ, err.message))
-                     Utils.retOk(req, res, 200, Utils.returnEvent(event, event.eventType, event.user))
-                  }
-               })
-         } else Utils.retErr(req, res, 400, Msgs.msg(3, OBJ))
+         if (!eventId) {
+            return Utils.retErr(res, 400, Msgs.msg(3, OBJ))
+         }
+         let event = await Event.findOne({ idEvent: eventId })
+            .populate('ownerId')
+            .populate('eventTypeId')
+
+         if (!event) {
+            return Utils.retErr(res, Msgs.msg(5, OBJ, eventId))
+         }
+
+         return Utils.retOk(req, res, Utils.returnEvent(event, event.eventTypeId, event.ownerId))
       } catch (err) {
-         Utils.retErr(req, res, 404, Msgs.msg(3, 'getEventById', err.message))
+         return Utils.retErr(res, Msgs.msg(3, 'getEventById', err.message))
       }
    },
 
    async getEvent(req, res) {
       try {
          Event.find({}, { _id: false })
-            .populate('user')
-            .populate('eventType')
+            .populate('ownerId')
+            .populate('eventTypeId')
             .exec((err, events) => {
                if (err) {
-                  Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
+                  return Utils.retErr(res, Msgs.msg(8, 'consultar', OBJ, err.message))
                } else if (events.length === 0) {
-                  Utils.retErr(req, res, 404, Msgs.msg(9, OBJ, err.message))
+                  return Utils.retErr(res, Msgs.msg(9, OBJ, err.message))
                } else {
-                  Utils.retOk(req, res, 200, Utils.returnEvents(events))
+                  return Utils.retOk(req, res, Utils.returnEvents(events))
                }
             })
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'getEvent', err.message))
+         return Utils.retErr(res, Msgs.msg(3, 'getEvent', err.message))
       }
    },
 
    async eventSearch(req, res) {
       try {
-         const { rdate, start_date, end_date, event_type, title } = req.query
+         const { start_date, end_date, event_type } = req.query
          let conditions = null
-         if (rdate) {
-            conditions = {}
-         } else if (start_date && end_date) {
-            let dateFormats = ['YYYY-MM-DD']
-            if (!moment(start_date, dateFormats, true).isValid())
-               Utils.retErr(req, res, 405, `start_date = ${start_date} não está no formato YYYY-MM-DD`)
-            if (!moment(end_date, dateFormats, true).isValid())
-               Utils.retErr(req, res, 405, `end_date = ${end_date} não está no formato YYYY-MM-DD`)
-            let start = moment(start_date).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-            let end = moment(end_date).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+         let start = null
+         let end = null
+
+         if (start_date && end_date) {
+            let dateFormat = ['YYYY-MM-DDTHH:mm:ss.SSSZ']
+            if (!moment(start_date, dateFormat, true).isValid())
+               return Utils.retErr(res, `start_date = ${start_date} não está no formato YYYY-MM-DD`)
+            if (!moment(end_date, dateFormat, true).isValid())
+               return Utils.retErr(res, `end_date = ${end_date} não está no formato YYYY-MM-DD`)
+            start = moment(start_date).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+            end = moment(end_date).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+         }
+
+         if (start_date && end_date && event_type) {
             conditions = {
-               startDate: { $gte: start, $lte: end }
-            }
-         } else if (title) {
-            conditions = { title: { $regex: '.*' + title + '.*', $options: 'i' } }
-         }
-         console.log(conditions)
-         if (!conditions) {
-            if (event_type) {
-               EventType.findOne({ idEventType: event_type }, '_id').exec(function(err, evtTp) {
-                  if (err) Utils.retErr(req, res, 405, Msgs.msg(2, 'consultar', 'eventType', err.message))
-                  conditions = { eventType: evtTp._id }
-                  Event.find(conditions, { _id: false })
-                     .populate('user')
-                     .populate('eventType')
-                     .exec((err, events) => {
-                        if (err) {
-                           Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
-                        } else if (events.length === 0) {
-                           Utils.retErr(req, res, 404, Msgs.msg(9, 'evento', err.message))
-                        } else {
-                           Utils.retOk(req, res, 200, Utils.returnEvents(events))
-                        }
-                     })
-               })
-            } else Utils.retErr(req, res, 405, `Não foi fornecido nenhum filtro válido`)
-         } else {
-            Event.find(conditions, { _id: false })
-               .populate('user')
-               .populate('eventType')
-               .exec((err, events) => {
-                  if (err) {
-                     Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
-                  } else if (events.length === 0) {
-                     Utils.retErr(req, res, 404, Msgs.msg(9, 'evento', err.message))
-                  } else {
-                     Utils.retOk(req, res, 200, Utils.returnEvents(events))
+               $and: [
+                  {
+                     startDate: { $gte: start, $lte: end }
+                  },
+                  {
+                     idEventType: event_type
                   }
-               })
+               ]
+            }
+         } else if (start_date && end_date) {
+            conditions = { startDate: { $gte: start, $lte: end } }
+         } else if (event_type) {
+            conditions = { idEventType: event_type }
          }
+
+         if (!conditions) {
+            return Utils.retErr(res, `Não foi fornecido nenhum filtro válido`)
+         }
+
+         Event.find(conditions, { _id: false })
+            .populate('user')
+            .populate('eventType')
+            .exec((err, events) => {
+               if (err) {
+                  return Utils.retErr(res, Msgs.msg(8, 'consultar', OBJ, err.message))
+               } else if (events.length === 0) {
+                  return Utils.retErr(res, Msgs.msg(10, 'evento'))
+               } else {
+                  return Utils.retOk(req, res, Utils.returnEvents(events))
+               }
+            })
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'eventSearchGET', err.message))
+         return Utils.retErr(res, Msgs.msg(3, 'eventSearchGET', err.message))
       }
    }
 }

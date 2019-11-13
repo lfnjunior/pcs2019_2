@@ -1,24 +1,25 @@
-const mongoose = require("mongoose");
-const AutoIncrement = require("mongoose-sequence")(mongoose);
+const mongoose = require('mongoose')
+const AutoIncrement = require('mongoose-sequence')(mongoose)
 
 const UserSchema = new mongoose.Schema(
   {
     username: {
+      index: true,
       type: String,
       require: true
     },
     email: {
-      unique: true,
+      //unique: true,
       index: true,
-      trim: true,
+      //trim: true,
       type: String,
-      required: true,
-      lowercase: true
+      required: true
+      //lowercase: true
     },
     password: {
       type: String,
-      required: true,
-      select: false
+      required: true
+      //select: false
     },
     birthdate: {
       type: Date,
@@ -30,11 +31,11 @@ const UserSchema = new mongoose.Schema(
     }
   },
   { versionKey: false }
-);
+)
 
 UserSchema.plugin(AutoIncrement, {
-  inc_field: "idUser",
-  reference_value: "User"
-});
+  inc_field: 'idUser',
+  reference_value: 'User'
+})
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = mongoose.model('User', UserSchema)

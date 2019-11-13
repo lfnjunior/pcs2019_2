@@ -10,21 +10,23 @@ module.exports = {
       try {
          let newUser = await Utils.validateInput(req, OB, false)
          if (!newUser.validationMessage) {
-            let userExist = await User.findOne({ $or: [{ username: newUser.username }, { email: newUser.email }] })
-            if (userExist) {
-               Utils.retErr(req, res, 405, Msgs.msg(1, 'username / email'))
-            } else {
+            let userExist = await User.findOne({
+               email: newUser.email
+               //$or: [{ username: newUser.username }, { email: newUser.email }]
+            })
+            if (!userExist) {
                User.create(newUser, function(err, user) {
                   if (err) {
-                     Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', OBJ, err.message))
+                     Utils.retErr(res, Msgs.msg(2, 'inserir', OBJ, err.message))
                   } else {
-                     Utils.retOk(req, res, 201, Utils.returnUser(user, false))
+                     Utils.retOk(req, res, Utils.returnUser(user, false))
                   }
                })
-            }
-         } else Utils.retErr(req, res, 405, newUser.validationMessage)
+               // } else Utils.retErr(res, Msgs.msg(1, 'username / email'))
+            } else Utils.retErr(res, Msgs.msg(1, 'email'))
+         } else Utils.retErr(res, newUser.validationMessage)
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'addUser', err.message))
+         Utils.retErr(res, Msgs.msg(3, 'addUser', err.message))
       }
    },
 
@@ -36,9 +38,7 @@ module.exports = {
                $and: [{ $or: [{ username: updtUser.username }, { email: updtUser.email }] }, { idUser: { $ne: updtUser.id } }]
             })
 
-            if (userExist) {
-               Utils.retErr(req, res, 405, Msgs.msg(1, 'username / email'))
-            } else {
+            if (!userExist) {
                User.updateOne(
                   { idUser: updtUser.idUser },
                   {
@@ -53,60 +53,54 @@ module.exports = {
                   },
                   function(err, doc) {
                      if (err) {
-                        Utils.retErr(req, res, 405, Msgs.msg(2, 'atualizar', OBJ, err.message))
+                        Utils.retErr(res, Msgs.msg(2, 'atualizar', OBJ, err.message))
                      } else if (doc.nModified === 0 && doc.n === 0) {
-                        Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, updtUser.idUser))
+                        Utils.retErr(res, Msgs.msg(5, OBJ, updtUser.idUser))
                      } else {
-                        Utils.retOk(req, res, 200, Utils.returnUser(updtUser, true))
+                        Utils.retOk(req, res, Utils.returnUser(updtUser, true))
                      }
                   }
                )
-            }
-         } else Utils.retErr(req, res, 405, updtUser.validationMessage)
+            } else Utils.retErr(res, Msgs.msg(1, 'username / email'))
+         } else Utils.retErr(res, updtUser.validationMessage)
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'updateUsuario', err.message))
+         Utils.retErr(res, Msgs.msg(3, 'updateUsuario', err.message))
       }
    },
 
    async getUserById(req, res) {
       try {
          const { userId } = req.params
-         if (!userId) {
-            Utils.retErr(req, res, 400, Msgs.msg(3, OBJ))
-         } else {
+         if (userId) {
             User.find({ idUser: userId }).exec((err, user) => {
                if (err) {
-                  Utils.retErr(req, res, 404, Msgs.msg(2, 'consultar', OBJ, err.message))
-               } else if (user.length === 0) {
-                  Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, userId))
-               } else {
-                  Utils.retOk(req, res, 200, Utils.returnUser(user[0], true))
-               }
+                  Utils.retErr(res, Msgs.msg(2, 'consultar', OBJ, err.message))
+               } else if (user.length !== 0) {
+                  Utils.retOk(req, res, Utils.returnUser(user[0], false))
+               } else Utils.retErr(res, Msgs.msg(5, OBJ, userId))
             })
-         }
+         } else Utils.retErr(res, Msgs.msg(3, OBJ))
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'getUserById', err.message))
+         Utils.retErr(res, Msgs.msg(3, 'getUserById', err.message))
       }
    },
 
    async deleteUser(req, res) {
       try {
          const { userId } = req.params
-         if (!userId) {
-            Utils.retErr(req, res, 400, Msgs.msg(3, OBJ))
-         } else {
+         if (userId) {
             User.deleteOne({ idUser: userId }, function(err, doc) {
                if (err) {
-                  Utils.retErr(req, res, 404, Msgs.msg(2, 'remover', OBJ, err.message))
+                  Utils.retErr(res, Msgs.msg(2, 'remover', OBJ, err.message))
                } else if (doc.deletedCount === 0) {
-                  Utils.retErr(req, res, 404, Msgs.msg(5, OBJ, userId))
+                  Utils.retErr(res, Msgs.msg(5, OBJ, userId))
                } else {
-                  Utils.retOk(req, res, 200, { message: Msgs.msg(6, OBJ, userId) })
+                  Utils.retOk(req, res, { message: Msgs.msg(6, OBJ, userId) })
                }
             })
-         }
+         } else Utils.retErr(res, Msgs.msg(3, OBJ))
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'deleteUser', err.message))
+         Utils.retErr(res, Msgs.msg(3, 'deleteUser', err.message))
       }
    },
 
@@ -114,29 +108,20 @@ module.exports = {
       try {
          let auth = await Utils.validateInput(req, 'Login', false)
          if (!auth.validationMessage) {
-            User.findOne({
-               $or: [{ username: auth.login }, { email: auth.login }]
-            })
-               .select('+password')
-               .exec(function(err, user) {
-                  if (err) {
-                     Utils.retErr(req, res, 400, Msgs.msg(2, 'consultar', OBJ, err.message))
-                  } else if (!user) {
-                     Utils.retErr(req, res, 400, Msgs.msg(7, auth.login, OBJ))
+            User.findOne({ $or: [{ username: auth.email }, { email: auth.email }] }).exec(function(err, user) {
+               if (err) {
+                  Utils.retErr(res, Msgs.msg(2, 'consultar', OBJ, err.message))
+               } else if (user) {
+                  if (!(auth.password === user.password)) {
+                     Utils.retErr(res, `Senha incorreta`)
                   } else {
-                     if (!(auth.senha === user.password)) {
-                        Utils.retErr(req, res, 400, `Senha incorreta`)
-                     } else {
-                        Utils.retOk(req, res, 200, {
-                           description: 'Usuário logado com sucesso',
-                           token: Token.generateToken({ idUser: user._id })
-                        })
-                     }
+                     Utils.retOk(req, res, { token: Token.generateToken({ idUser: user._id }) })
                   }
-               })
-         } else Utils.retErr(req, res, 400, auth.validationMessage)
+               } else Utils.retErr(res, Msgs.msg(7, OBJ, auth.email))
+            })
+         } else Utils.retErr(res, auth.validationMessage)
       } catch (err) {
-         Utils.retErr(req, res, 400, Msgs.msg(3, 'loginUser', err.message))
+         Utils.retErr(res, Msgs.msg(3, 'loginUser', err.message))
       }
    },
 
@@ -152,16 +137,14 @@ module.exports = {
             .limit(limit)
             .exec((err, users) => {
                if (err) {
-                  Utils.retErr(req, res, 400, 'Users searched failed!')
-               } else if (users.length === 0) {
-                  Utils.retErr(req, res, 400, `Page ${page} exceeded existing amount!`)
-               } else {
+                  Utils.retErr(res, 'Users searched failed!')
+               } else if (users.length !== 0) {
                   users = Utils.replaceStr(users, ['idUser', 'T00:00:00.000Z'], ['id', ''])
-                  Utils.retOk(req, res, 200, users)
-               }
+                  Utils.retOk(req, res, users)
+               } else Utils.retErr(res, `Page ${page} exceeded existing amount!`)
             })
       } catch (err) {
-         Utils.retErr(req, res, 404, Msgs.msg(3, 'getUsers', err.message))
+         Utils.retErr(res, Msgs.msg(3, 'getUsers', err.message))
       }
    }
 }

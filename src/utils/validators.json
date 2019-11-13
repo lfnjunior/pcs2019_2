@@ -3,8 +3,18 @@
       "Event": {
          "bodyAttributes": [
             {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
                "name": "title",
                "required": true,
+               "type": "string"
+            },
+            {
+               "name": "description",
+               "required": false,
                "type": "string"
             },
             {
@@ -33,28 +43,18 @@
                "type": "string"
             },
             {
-               "name": "eventType",
-               "required": true,
-               "type": "objectReference"
-            },
-            {
-               "name": "id",
-               "required": false,
-               "type": "int64"
-            },
-            {
                "name": "referencePoint",
                "required": false,
                "type": "string"
             },
             {
-               "name": "description",
-               "required": false,
-               "type": "string"
+               "name": "eventTypeId",
+               "required": true,
+               "type": "objectReference"
             },
             {
-               "name": "user",
-               "required": false,
+               "name": "ownerId",
+               "required": true,
                "type": "objectReference"
             },
             {
@@ -89,7 +89,7 @@
             {
                "name": "birthdate",
                "required": false,
-               "type": "date"
+               "type": "date-time"
             },
             {
                "name": "sex",
@@ -115,12 +115,12 @@
       "Login": {
          "bodyAttributes": [
             {
-               "name": "login",
+               "name": "email",
                "required": true,
                "type": "string"
             },
             {
-               "name": "senha",
+               "name": "password",
                "required": true,
                "type": "string"
             }
@@ -129,19 +129,24 @@
       "Participant": {
          "bodyAttributes": [
             {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "userId",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "eventoId",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
                "name": "registrationDate",
                "required": true,
                "type": "date-time"
-            },
-            {
-               "name": "user",
-               "required": true,
-               "type": "objectReference"
-            },
-            {
-               "name": "event",
-               "required": true,
-               "type": "objectReference"
             }
          ]
       },
@@ -153,14 +158,14 @@
                "type": "int64"
             },
             {
-               "name": "date",
-               "required": true,
+               "name": "messageDate",
+               "required": false,
                "type": "date-time"
             },
             {
-               "name": "participant",
+               "name": "participantId",
                "required": true,
-               "type": "objectReference"
+               "type": "int64"
             },
             {
                "name": "message",
