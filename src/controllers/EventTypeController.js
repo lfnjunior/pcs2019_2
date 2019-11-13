@@ -8,21 +8,24 @@ module.exports = {
    async addEventType(req, res) {
       try {
          const { name } = req.body
+         if (!name) {
+            return Utils.retErr(req, res, 405, 'Atributo name não foi informado')
+         }
 
-         if (name) {
-            let eventTypeExist = await EventType.findOne({ name })
-            if (!eventTypeExist) {
-               EventType.create({ name: name }, function(err, eventType) {
-                  if (err) {
-                     Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', OBJ, err.message))
-                  } else {
-                     Utils.retOk(req, res, 201, Utils.returnEventType(eventType))
-                  }
-               })
-            } else Utils.retErr(req, res, 405, Msgs.msg(1, 'name'))
-         } else Utils.retErr(req, res, 405, 'Atributo name não foi informado')
+         let eventTypeExist = await EventType.findOne({ name })
+         if (eventTypeExist) {
+            return Utils.retErr(req, res, 405, Msgs.msg(1, 'name'))
+         }
+
+         EventType.create({ name: name }, function(err, eventType) {
+            if (err) {
+               return Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', OBJ, err.message))
+            } else {
+               return Utils.retOk(req, res, 201, Utils.returnEventType(eventType))
+            }
+         })
       } catch (err) {
-         Utils.retErr(req, res, 405, Msgs.msg(3, 'addEventType', err.message))
+         return Utils.retErr(req, res, 405, Msgs.msg(3, 'addEventType', err.message))
       }
    },
 
@@ -30,15 +33,15 @@ module.exports = {
       try {
          EventType.find({}, { _id: false }).exec((err, eventTypes) => {
             if (err) {
-               Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
+               return Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
             } else if (eventTypes.length === 0) {
-               Utils.retErr(req, res, 404, Msgs.msg(9, OBJ, err.message))
+               return Utils.retErr(req, res, 404, Msgs.msg(9, OBJ, err.message))
             } else {
-               Utils.retOk(req, res, 200, Utils.returnEventTypes(eventTypes))
+               return Utils.retOk(req, res, 200, Utils.returnEventTypes(eventTypes))
             }
          })
       } catch (err) {
-         Utils.retErr(req, res, 404, Msgs.msg(3, 'getTipoEvento', err.message))
+         return Utils.retErr(req, res, 404, Msgs.msg(3, 'getTipoEvento', err.message))
       }
    }
 }

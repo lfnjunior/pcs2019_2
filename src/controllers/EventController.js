@@ -2,6 +2,7 @@ const Utils = require('../utils/utils')
 const User = require('../models/User')
 const EventType = require('../models/EventType')
 const Event = require('../models/Event')
+const Participant = require('../models/Participant')
 const Msgs = require('../utils/messages')
 const moment = require('moment')
 const OB = 'Event'
@@ -26,7 +27,7 @@ module.exports = {
          //consulta id do User
          let user = await User.findOne({ idUser: newEvent.ownerId })
          if (!user) {
-            return Utils.retErr(res, Msgs.msg(5, 'User', newEvent.eventTypeId))
+            return Utils.retErr(res, Msgs.msg(5, 'User', newEvent.ownerId))
          }
          newEvent.ownerId = user._id
 
@@ -60,16 +61,16 @@ module.exports = {
          //consulta id do User
          let user = await User.findOne({ idUser: updtEvent.ownerId })
          if (!user) {
-            return Utils.retErr(res, Msgs.msg(5, 'User', updtEvent.eventTypeId))
+            return Utils.retErr(res, Msgs.msg(5, 'User', updtEvent.ownerId))
          }
          updtEvent.ownerId = user._id
 
          //consulta id do Event
-         let event = await Event.findOne({ idEvent: updtEvent.id }, '_id')
+         let event = await Event.findOne({ idEvent: updtEvent.idEvent }, '_id')
          if (!event) {
-            return Utils.retErr(res, Msgs.msg(5, 'Event', updtEvent.eventTypeId))
+            return Utils.retErr(res, Msgs.msg(5, 'Event', updtEvent.idEvent))
          }
-         updtEvent.participant = event.participant
+         updtEvent.participant = !event.participant ? [] : event.participant
 
          //atualiza Event
          Event.updateOne({ idEvent: updtEvent.idEvent }, updtEvent, { upsert: false }, function(err, doc) {
@@ -92,6 +93,20 @@ module.exports = {
          if (!eventId) {
             return Utils.retErr(res, Msgs.msg(4, OBJ))
          }
+
+         //consulta id do Event
+         let event = await Event.findOne({ idEvent: eventId }, '_id')
+         if (!event) {
+            return Utils.retErr(res, Msgs.msg(5, OBJ, eventId))
+         }
+
+         //verifica em participant se já existe algum user Vinculado
+         //Caso exista bloqueia a exclusão
+         let participants = await Participant.find({ userId: event._id }, '_id')
+         if (participants) {
+            return Utils.retErr(res, Msgs.msg(11, OBJ, eventId, 'Participant'))
+         }
+
          Event.deleteOne({ idEvent: eventId }, function(err, doc) {
             if (err) {
                return Utils.retErr(res, Msgs.msg(2, 'deletar', OBJ, err.message))

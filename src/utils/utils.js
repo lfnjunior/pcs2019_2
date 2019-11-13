@@ -3,274 +3,274 @@ const moment = require('moment')
 const Participant = require('../models/Participant')
 
 module.exports = {
-   formatDateTime(date) {
-      return moment(date).format('YYYY-MM-DDTHH:mm:ss.sssZ')
-   },
+  formatDateTime(date) {
+    return moment(date).format('YYYY-MM-DDTHH:mm:ss.sssZ')
+  },
 
-   replaceStr(json, oldStr, newStr) {
-      let str = JSON.stringify(json)
-      for (let i = 0; i < oldStr.length; i++) {
-         str = str.replace(new RegExp(oldStr[i], 'g'), newStr[i])
-      }
-      return JSON.parse(str)
-   },
+  replaceStr(json, oldStr, newStr) {
+    let str = JSON.stringify(json)
+    for (let i = 0; i < oldStr.length; i++) {
+      str = str.replace(new RegExp(oldStr[i], 'g'), newStr[i])
+    }
+    return JSON.parse(str)
+  },
 
-   async validateInput(req, objectName, idIsRequired) {
-      let attribute = null
-      let isRequired = null
-      let type = null
-      let buildObj = {}
-      let dateFormats = []
-      let attributes = inputs.objects[`${objectName}`].bodyAttributes
-      for (let i = 0; i < attributes.length; i++) {
-         attribute = attributes[i].name
+  async validateInput(req, objectName, idIsRequired) {
+    let attribute = null
+    let isRequired = null
+    let type = null
+    let buildObj = {}
+    let dateFormats = []
+    let attributes = inputs.objects[`${objectName}`].bodyAttributes
+    for (let i = 0; i < attributes.length; i++) {
+      attribute = attributes[i].name
 
-         type = attributes[i].type
+      type = attributes[i].type
 
-         if (attribute === 'id' && idIsRequired) {
-            isRequired = true
-         } else {
-            isRequired = attributes[i].required
-         }
-
-         if (isRequired && req.body[attribute] === undefined) {
-            return { validationMessage: `Parâmetro ${attribute} é obrigatório.` }
-         } else if (!isRequired && req.body[attribute] === undefined) {
-            buildObj[attribute] = null
-         } else {
-            if (attribute === 'id' && idIsRequired) {
-               buildObj[attribute + objectName] = req.body[attribute]
-            } else {
-               buildObj[attribute] = req.body[attribute]
-            }
-         }
-
-         if (isRequired && type === 'date-time') {
-            dateFormats = ['YYYY-MM-DDTHH:mm:ss.sssZ'] /**moment.ISO_8601 */
-            if (!moment(buildObj[attribute], dateFormats, true).isValid()) {
-               return { validationMessage: `${attribute} = ${buildObj[attribute]} não está no formato YYYY-MM-DDTHH:mm:ss.sssZ.` }
-            }
-         } else if (isRequired && type === 'string') {
-            if (buildObj[attribute] === '') {
-               return { validationMessage: `O conteúdo do atributo ${attribute} está vazio ("").` }
-            }
-         } else if (isRequired && type === 'int64') {
-            if (Number.isInteger(buildObj[attribute]) && buildObj[attribute] > 0) {
-               return { validationMessage: `${attribute} = ${buildObj[attribute]} não é um número válido.` }
-            }
-         } else if (isRequired && attribute === 'sex') {
-            if (buildObj[attribute] !== 'M' || buildObj[attribute] !== 'F') {
-               return { validationMessage: `Sexo = ${buildObj[attribute]} inválido. deve ser "M" ou "F".` }
-            }
-         }
-      }
-      return buildObj
-   },
-
-   relationIdMongo(res, objName, err, obj, id) {
-      if (err) {
-         this.retErr(res`Banco de dados nao conseguiu consultar ${objName}: ${err.message}`)
-      } else if (!obj) {
-         this.retErr(res, `Não foi encontrado nenhum ${objName} com o id = ${id}.`)
+      if (attribute === 'id' && idIsRequired) {
+        isRequired = true
       } else {
-         return obj._id
+        isRequired = attributes[i].required
       }
-   },
 
-   returnEventTypes(eventTypes) {
-      let eventTypesRet = []
-      if (eventTypes.length > 0) {
-         for (let i = 0; i < eventTypes.length; i++) {
-            eventTypesRet[i] = this.returnEventType(eventTypes[i])
-         }
+      if (isRequired && req.body[attribute] === undefined) {
+        return { validationMessage: `Parâmetro ${attribute} é obrigatório.` }
+      } else if (!isRequired && req.body[attribute] === undefined) {
+        buildObj[attribute] = null
       } else {
-         eventTypesRet = eventTypes
+        if (attribute === 'id' && idIsRequired) {
+          buildObj[attribute + objectName] = req.body[attribute]
+        } else {
+          buildObj[attribute] = req.body[attribute]
+        }
       }
-      return eventTypesRet
-   },
 
-   returnEvents(events) {
-      let eventsRet = []
+      if (isRequired && type === 'date-time') {
+        dateFormats = ['YYYY-MM-DDTHH:mm:ss.sssZ'] /**moment.ISO_8601 */
+        if (!moment(buildObj[attribute], dateFormats, true).isValid()) {
+          return { validationMessage: `${attribute} = ${buildObj[attribute]} não está no formato YYYY-MM-DDTHH:mm:ss.sssZ.` }
+        }
+      } else if (isRequired && type === 'string') {
+        if (buildObj[attribute] === '') {
+          return { validationMessage: `O conteúdo do atributo ${attribute} está vazio ("").` }
+        }
+      } else if (isRequired && type === 'int64') {
+        if (Number.isInteger(buildObj[attribute]) && buildObj[attribute] > 0) {
+          return { validationMessage: `${attribute} = ${buildObj[attribute]} não é um número válido.` }
+        }
+      } else if (isRequired && attribute === 'sex') {
+        if (buildObj[attribute] !== 'M' || buildObj[attribute] !== 'F') {
+          return { validationMessage: `Sexo = ${buildObj[attribute]} inválido. deve ser "M" ou "F".` }
+        }
+      }
+    }
+    return buildObj
+  },
+
+  relationIdMongo(res, objName, err, obj, id) {
+    if (err) {
+      this.retErr(res`Banco de dados nao conseguiu consultar ${objName}: ${err.message}`)
+    } else if (!obj) {
+      this.retErr(res, `Não foi encontrado nenhum ${objName} com o id = ${id}.`)
+    } else {
+      return obj._id
+    }
+  },
+
+  returnEventTypes(eventTypes) {
+    let eventTypesRet = []
+    if (eventTypes.length > 0) {
+      for (let i = 0; i < eventTypes.length; i++) {
+        eventTypesRet[i] = this.returnEventType(eventTypes[i])
+      }
+    } else {
+      eventTypesRet = eventTypes
+    }
+    return eventTypesRet
+  },
+
+  returnEvents(events) {
+    let eventsRet = []
+    if (events.length > 0) {
+      for (let i = 0; i < events.length; i++) {
+        eventsRet[i] = this.returnEvent(events[i], events[i].eventTypeId, events[i].ownerId)
+      }
+    } else {
+      eventsRet = events
+    }
+    return eventsRet
+  },
+
+  getParticipantsOfEvents(events) {
+    try {
       if (events.length > 0) {
-         for (let i = 0; i < events.length; i++) {
-            eventsRet[i] = this.returnEvent(events[i], events[i].eventTypeId, events[i].ownerId)
-         }
-      } else {
-         eventsRet = events
+        for (let i = 0; i < events.length; i++) {
+          Participant.find({ eventoId: events[i]._id })
+            .populate('userId')
+            .exec((err, participants) => {
+              if (err) {
+                return events
+              } else if (participants.length !== 0) {
+                for (let j = 0; i < events.length; i++) {
+                  events[i].participant[j].id = participants.userId.idUser
+                  events[i].participant[j].username = participants.userId.username
+                  events[i].participant[j].subscriptionDate = participants.userId.registrationDate
+                }
+              } else {
+                events[i].participant = []
+              }
+            })
+        }
       }
-      return eventsRet
-   },
+      return events
+    } catch (err) {
+      return events
+    }
+  },
 
-   getParticipantsOfEvents(events) {
-      try {
-         if (events.length > 0) {
-            for (let i = 0; i < events.length; i++) {
-               Participant.find({ eventoId: events[i]._id })
-                  .populate('userId')
-                  .exec((err, participants) => {
-                     if (err) {
-                        return events
-                     } else if (participants.length !== 0) {
-                        for (let j = 0; i < events.length; i++) {
-                           events[i].participant[j].id = participants.userId.idUser
-                           events[i].participant[j].username = participants.userId.username
-                           events[i].participant[j].subscriptionDate = participants.userId.registrationDate
-                        }
-                     } else {
-                        events[i].participant = []
-                     }
-                  })
-            }
-         }
-         return events
-      } catch (err) {
-         return events
+  returnEvent(event, eventType, user) {
+    let eventRet = {
+      id: event.idEvent,
+      title: event.title,
+      startDate: this.formatDateTime(event.startDate),
+      endDate: this.formatDateTime(event.endDate),
+      city: event.city,
+      street: event.street,
+      neighborhood: event.neighborhood,
+      referencePoint: event.referencePoint ? event.referencePoint : undefined,
+      description: event.description ? event.description : undefined,
+      status: event.status ? event.status : undefined,
+      eventType: this.returnEventType(eventType),
+      user: this.returnUser(user, false),
+      participant: event.participant
+    }
+    return eventRet
+  },
+
+  returnEventType(eventType) {
+    let eventTypeRet = {
+      id: eventType.idEventType,
+      name: eventType.name
+    }
+    return eventTypeRet
+  },
+
+  returnUser(user, showPassword) {
+    let userRet = {
+      id: user.idUser,
+      username: user.username,
+      email: user.email,
+      password: showPassword ? user.password : undefined,
+      birthdate: user.birthdate ? this.formatDateTime(user.birthdate) : undefined,
+      sex: user.sex ? user.sex : undefined
+    }
+    return userRet
+  },
+
+  returnParticipants(participants) {
+    let participantsRet = []
+    if (participants.length > 0) {
+      for (let i = 0; i < participants.length; i++) {
+        participantsRet[i].id = participants.ownerId.idUser
+        participantsRet[i].username = participants.ownerId.username
+        participantsRet[i].subscriptionDate = participants.subscriptionDate
       }
-   },
+    } else {
+      participantsRet = participants
+    }
+    return participantsRet
+  },
 
-   returnEvent(event, eventType, user) {
-      let eventRet = {
-         id: event.idEvent,
-         title: event.title,
-         startDate: this.formatDateTime(event.startDate),
-         endDate: this.formatDateTime(event.endDate),
-         city: event.city,
-         street: event.street,
-         neighborhood: event.neighborhood,
-         referencePoint: event.referencePoint ? event.referencePoint : undefined,
-         description: event.description ? event.description : undefined,
-         status: event.status ? event.status : undefined,
-         eventType: this.returnEventType(eventType),
-         user: this.returnUser(user, false),
-         participant: event.participant
+  returnMessages(messages) {
+    let messagesRet = []
+    if (messages.length > 0) {
+      for (let i = 0; i < messages.length; i++) {
+        messagesRet[i] = this.returnMessage(messages[i])
       }
-      return eventRet
-   },
+    } else {
+      messagesRet = messages
+    }
+    return messagesRet
+  },
 
-   returnEventType(eventType) {
-      let eventTypeRet = {
-         id: eventType.idEventType,
-         name: eventType.name
+  returnMessage(message) {
+    let messageRet = {
+      id: message.idMessage,
+      messageDate: message.messageDate ? message.messageDate : undefined,
+      message: message.message ? message.message : undefined,
+      participantId: message.participantId
+    }
+    return messageRet
+  },
+
+  retErr(res, msg) {
+    console.log(msg)
+    return res.status(400).json({ message: msg })
+  },
+
+  retOk(req, res, obj) {
+    let path = req.route.path
+    let method = req.method
+    let nomeObj = null
+    let acao = null
+    let final = 'o'
+    let msg = ''
+
+    switch (path) {
+      case '/event/:eventId':
+        nomeObj = 'Evento'
+        break
+      case '/event':
+        nomeObj = 'Evento'
+        break
+      case '/tipoEvento':
+        nomeObj = 'Tipo de Evento'
+        acao = 'consultad'
+        break
+      case '/event/search':
+        nomeObj = 'Evento'
+        break
+      case '/user/:userId':
+        nomeObj = 'Usuário'
+        break
+      case '/user/login':
+        nomeObj = 'Usuário'
+        acao = 'autenticad'
+        break
+      case '/user':
+        nomeObj = 'Usuário'
+        break
+      case '/mensagem':
+        nomeObj = 'Mensagem'
+        final = 'a'
+        break
+      default:
+        break
+    }
+
+    if (!acao) {
+      switch (method) {
+        case 'POST':
+          acao = 'gravad'
+          break
+        case 'PUT':
+          acao = 'atualizad'
+          break
+        case 'DELETE':
+          acao = 'deletad'
+          break
+        case 'GET':
+          acao = 'consultad'
+          break
+        default:
+          break
       }
-      return eventTypeRet
-   },
+    }
 
-   returnUser(user, showPassword) {
-      let userRet = {
-         id: user.idUser,
-         username: user.username,
-         email: user.email,
-         password: showPassword ? user.password : undefined,
-         birthdate: user.birthdate ? this.formatDate(user.birthdate) : undefined,
-         sex: user.sex ? user.sex : undefined
-      }
-      return userRet
-   },
+    if (nomeObj && acao) msg = nomeObj + ' foi ' + acao + final + ' com sucesso!'
 
-   returnParticipants(participants) {
-      let participantsRet = []
-      if (participants.length > 0) {
-         for (let i = 0; i < participants.length; i++) {
-            participantsRet[i].id = participants.ownerId.idUser
-            participantsRet[i].username = participants.ownerId.username
-            participantsRet[i].subscriptionDate = participants.subscriptionDate
-         }
-      } else {
-         participantsRet = participants
-      }
-      return participantsRet
-   },
+    console.log(msg)
 
-   returnMessages(messages) {
-      let messagesRet = []
-      if (messages.length > 0) {
-         for (let i = 0; i < messages.length; i++) {
-            messagesRet[i] = this.returnMessage(messages[i])
-         }
-      } else {
-         messagesRet = messages
-      }
-      return messagesRet
-   },
-
-   returnMessage(message) {
-      let messageRet = {
-         id: message.idMessage,
-         messageDate: message.messageDate ? message.messageDate : undefined,
-         message: message.message ? message.message : undefined,
-         participantId: message.participantId
-      }
-      return messageRet
-   },
-
-   retErr(res, msg) {
-      console.log(msg)
-      return res.status(400).json({ message: msg })
-   },
-
-   retOk(req, res, obj) {
-      let path = req.route.path
-      let method = req.method
-      let nomeObj = null
-      let acao = null
-      let final = 'o'
-      let msg = ''
-
-      switch (path) {
-         case '/event/:eventId':
-            nomeObj = 'Evento'
-            break
-         case '/event':
-            nomeObj = 'Evento'
-            break
-         case '/tipoEvento':
-            nomeObj = 'Tipo de Evento'
-            acao = 'consultad'
-            break
-         case '/event/search':
-            nomeObj = 'Evento'
-            break
-         case '/user/:userId':
-            nomeObj = 'Usuário'
-            break
-         case '/user/login':
-            nomeObj = 'Usuário'
-            acao = 'autenticad'
-            break
-         case '/user':
-            nomeObj = 'Usuário'
-            break
-         case '/mensagem':
-            nomeObj = 'Mensagem'
-            final = 'a'
-            break
-         default:
-            break
-      }
-
-      if (!acao) {
-         switch (method) {
-            case 'POST':
-               acao = 'gravad'
-               break
-            case 'PUT':
-               acao = 'atualizad'
-               break
-            case 'DELETE':
-               acao = 'deletad'
-               break
-            case 'GET':
-               acao = 'consultad'
-               break
-            default:
-               break
-         }
-      }
-
-      if (nomeObj && acao) msg = nomeObj + ' foi ' + acao + final + ' com sucesso!'
-
-      console.log(msg)
-
-      return res.status(200).json(obj)
-   }
+    return res.status(200).json(obj)
+  }
 }

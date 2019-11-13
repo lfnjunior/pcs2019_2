@@ -5,7 +5,7 @@ module.exports = {
     let msgRet = ''
     switch (key) {
       case 1:
-        msgRet = `Algum dos campos (${text1}) já está sendo utilizado`
+        msgRet = `O campo ${text1} = ${text2}, já está sendo utilizado por outro ${text3}`
         break
       case 2:
         msgRet = `Não foi possível ${text1} o ${text2} no ${BD}: ${text3}`
@@ -17,7 +17,7 @@ module.exports = {
         msgRet = `Código identificador do ${text1} não foi fornecido`
         break
       case 5:
-        msgRet = `Não foi encontrado ${text1} com id (${text2}) no ${BD}.`
+        msgRet = `Não foi encontrado ${text1} com id = (${text2} no ${BD}.`
         break
       case 6:
         msgRet = `${text1} com id (${text2}) foi removido do ${BD}.`
@@ -30,6 +30,9 @@ module.exports = {
         break
       case 10:
         msgRet = `Nenhum ${text1} foi encontrado no ${BD}`
+        break
+      case 11:
+        msgRet = `O ${text1} com id ${text2} já está sendo usando pelo cadastro de ${text3}, não será possível realizar a exclusão por questões de integridade referencial!`
         break
       default:
         break

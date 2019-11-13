@@ -46,13 +46,13 @@ routes.get('/event/search', EventController.eventSearch)
 routes.get('/event/:eventId', EventController.getEventById)
 routes.delete('/event/:eventId', EventController.deleteEvent)
 
-routes.post('/partipant', ParticipantController.addParticipant)
-routes.get('/participant/:userId', ParticipantController.getParticipantById)
-routes.delete('/participant/:userId', ParticipantController.deleteParticipant)
+routes.post('/participant', ParticipantController.addParticipant)
+routes.get('/participant/:participantId', ParticipantController.getParticipantById)
+routes.delete('/participant/:participantId', ParticipantController.deleteParticipant)
 
 routes.post('/mensagem', MensagemController.addMensagem)
 routes.put('/mensagem', MensagemController.updateMessage)
-routes.get('/mensages/:participantId', MensagemController.getMensagemById)
+routes.get('/mensagem/evento/:eventId', MensagemController.getMensagemById)
 routes.delete('/mensagem/:msgId', MensagemController.deleteMensagem)
 
 module.exports = routes

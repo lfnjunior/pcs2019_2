@@ -142,11 +142,6 @@
                "name": "eventoId",
                "required": true,
                "type": "objectReference"
-            },
-            {
-               "name": "registrationDate",
-               "required": true,
-               "type": "date-time"
             }
          ]
       },
@@ -156,11 +151,6 @@
                "name": "id",
                "required": false,
                "type": "int64"
-            },
-            {
-               "name": "messageDate",
-               "required": false,
-               "type": "date-time"
             },
             {
                "name": "participantId",

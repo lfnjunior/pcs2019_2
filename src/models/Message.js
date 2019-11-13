@@ -9,13 +9,16 @@ const MessageSchema = new mongoose.Schema(
          ref: 'User'
       },*/
       participantId: {
-         type: Number
+         type: Number,
+         required: true
       },
       messageDate: {
-         type: Date
+         type: Date,
+         required: true
       },
       message: {
-         type: String
+         type: String,
+         required: true
       }
    },
    { versionKey: false }
