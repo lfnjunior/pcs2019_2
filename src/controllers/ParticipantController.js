@@ -65,7 +65,7 @@ module.exports = {
             return Utils.retErr(res, 400, Msgs.msg(3, OBJ))
          }
 
-         let participant = await Participant.findOne({ idEvent: participantId })
+         let participant = await Participant.findOne({ idParticipant: participantId })
             .populate('userId')
             .populate('eventoId')
 
@@ -95,27 +95,38 @@ module.exports = {
          }
 
          //procura participant
-         let participant = await Participant.findOne({ idParticipant: participantId })
+         let participant = await Participant.findOne({ idParticipant: participantId }).populate('eventoId')
          if (!participant) {
             return Utils.retErr(res, Msgs.msg(5, OBJ, participantId))
          }
 
-         //procura event
-         let event = await Event.findOne({ idEvent: participant.eventoId })
-         if (event) {
-            event.participant.pull({ id: participantId })
-            await event.save(event)
-         }
-
          //verifica em messages se já existe algum participant Vinculado
          //Caso exista bloqueia a exclusão
-         let messages = await Message.find({ participantId: participantId })
-         if (messages) {
+         let messages = await Message.find({ participantId: participant._id })
+         if (messages.length > 0) {
             return Utils.retErr(res, Msgs.msg(11, OBJ, participantId, 'Message'))
          }
 
+         //procura event
+         let event = await Event.findOne({ idEvent: participant.eventoId.idEvent })
+         if (event) {
+            console.log(event.participant)
+            console.log(participantId)
+
+            let newParticipants = []
+            for (let i = 0; i < event.participant.length; i++) {
+               if (!(event.participant[i].id === participant.idParticipant)) {
+                  newParticipants[i] = event.participant[i]
+               }
+            }
+            console.log(newParticipants)
+            event.participant = newParticipants
+            console.log(event.participant)
+            await event.save(event)
+         }
+
          //deleta participante
-         Participant.deleteOne({ IdParticipant: participantId }, function(err, doc) {
+         Participant.deleteOne({ idParticipant: participantId }, function(err, doc) {
             if (err) {
                return Utils.retErr(res, Msgs.msg(2, 'remover', OBJ, err.message))
             } else if (doc.deletedCount === 0) {

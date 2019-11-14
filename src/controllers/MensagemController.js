@@ -42,17 +42,20 @@ module.exports = {
          }
 
          //consulta id do Message
-         let message = await Message.findOne({ idMessage: updtMessage.id }).populate('participantId')
+         let message = await Message.findOne({ idMessage: updtMessage.idMessage }).populate('participantId')
          if (!message) {
-            return Utils.retErr(res, Msgs.msg(5, 'Message', updtMessage.id))
+            return Utils.retErr(res, Msgs.msg(5, 'Message', updtMessage.idMessage))
          }
-         let id = updtMessage.id
 
-         updtMessage = {
+         let ret = {
+            id: message.idMessage,
             message: updtMessage.message,
-            participantId: message.participantId._id,
+            participantId: message.participantId.idParticipant,
             messageDate: new Date()
          }
+
+         updtMessage.messageDate = ret.messageDate
+         updtMessage.participantId = message.participantId._id
 
          Message.updateOne({ idMessage: updtMessage.idMessage }, updtMessage, { upsert: false }, function(err, doc) {
             if (err) {
@@ -62,9 +65,8 @@ module.exports = {
             if (doc.nModified === 0 && doc.n === 0) {
                return Utils.retErr(res, Msgs.msg(5, OBJ, updtMessage.idMessage))
             }
-            updtMessage.idMessage = id
 
-            return Utils.retOk(req, res, Utils.returnMessage(updtMessage, true))
+            return Utils.retOk(req, res, ret)
          })
       } catch (err) {
          return Utils.retErr(res, Msgs.msg(3, 'updateUsuario', err.message))

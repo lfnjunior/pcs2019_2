@@ -66,7 +66,7 @@ module.exports = {
          updtEvent.ownerId = user._id
 
          //consulta id do Event
-         let event = await Event.findOne({ idEvent: updtEvent.idEvent }, '_id')
+         let event = await Event.findOne({ idEvent: updtEvent.idEvent }, '_id participant')
          if (!event) {
             return Utils.retErr(res, Msgs.msg(5, 'Event', updtEvent.idEvent))
          }
@@ -102,7 +102,7 @@ module.exports = {
 
          //verifica em participant se já existe algum user Vinculado
          //Caso exista bloqueia a exclusão
-         let participants = await Participant.find({ userId: event._id }, '_id')
+         let participants = await Participant.find({ eventoId: event._id }, '_id')
          if (participants.length > 0) {
             return Utils.retErr(res, Msgs.msg(11, OBJ, eventId, 'Participant'))
          }

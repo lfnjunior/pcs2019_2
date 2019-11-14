@@ -27,7 +27,9 @@ module.exports = {
 
          type = attributes[i].type
 
-         if (attribute === 'id' && idIsRequired) {
+         if (attribute === 'participantId' && idIsRequired) {
+            isRequired = false
+         } else if (attribute === 'id' && idIsRequired) {
             isRequired = true
          } else {
             isRequired = attributes[i].required
@@ -52,7 +54,7 @@ module.exports = {
                }
             }
             if (type === 'int64') {
-               if (Number.isInteger(buildObj[attribute]) && buildObj[attribute] > 0) {
+               if (Number.isInteger(buildObj[attribute]) && buildObj[attribute] <= 0) {
                   return { validationMessage: `${attribute} = ${buildObj[attribute]} não é um número válido.` }
                }
             }

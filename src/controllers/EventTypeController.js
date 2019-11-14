@@ -21,7 +21,7 @@ module.exports = {
             if (err) {
                return Utils.retErr(req, res, 405, Msgs.msg(2, 'inserir', OBJ, err.message))
             } else {
-               return Utils.retOk(req, res, 201, Utils.returnEventType(eventType))
+               return Utils.retOk(req, res, Utils.returnEventType(eventType))
             }
          })
       } catch (err) {

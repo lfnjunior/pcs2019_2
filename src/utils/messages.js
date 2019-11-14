@@ -37,7 +37,7 @@ module.exports = {
          case 12:
             msgRet = `Nenhuma ${text1} foi encontrada no ${BD} para o ${text2} informado`
             break
-         case 16:
+         case 13:
             msgRet = `O usuário = ${text1} já está participando do evento = ${text2}`
             break
          default:
