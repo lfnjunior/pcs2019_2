@@ -110,13 +110,16 @@ module.exports = {
             return Utils.retErr(res, 'Este evento não possui nenhum participante, portanto não tem nenhuma mensagem.')
          }
 
-         let ret = [{}]
+         let ret = []
+
          for (let i = 0; i < mensagens.length; i++) {
-            ret[i].id = mensagens[i].idMessage
-            ret[i].userId = mensagens[i].participantId.userId.idUser
-            ret[i].username = mensagens[i].participantId.userId.username
-            ret[i].messageDate = mensagens[i].messageDate
-            ret[i].message = mensagens[i].message
+            let r = {}
+            r.id = mensagens[i].idMessage
+            r.userId = mensagens[i].participantId.userId.idUser
+            r.username = mensagens[i].participantId.userId.username
+            r.messageDate = mensagens[i].messageDate
+            r.message = mensagens[i].message
+            ret[i] = r
          }
 
          return Utils.retOk(req, res, ret)
