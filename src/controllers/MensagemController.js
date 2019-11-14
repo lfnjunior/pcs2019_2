@@ -123,18 +123,6 @@ module.exports = {
          }
 
          return Utils.retOk(req, res, ret)
-
-         /**
-            [
-               {
-                  "id": 0,
-                  "userId": 0,
-                  "username": "string",
-                  "messageDate": "2019-11-13T23:09:34.165Z",
-                  "message": "string"
-               }
-            ]
-          **/
       } catch (err) {
          return Utils.retErr(res, Msgs.msg(3, 'getMessageById', err.message))
       }
