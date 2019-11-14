@@ -99,7 +99,7 @@ module.exports = {
 
          //consulta mensagens dos participantes no evento
          let mensagens = await Message.find({ participantId: { $in: allIdsParticipants } }).populate('participantId')
-         if (!mensagens) {
+         if (mensagens.length === 0) {
             return Utils.retErr(res, 'Este evento não possui nenhum participante, portanto não tem nenhuma mensagem.')
          }
 
