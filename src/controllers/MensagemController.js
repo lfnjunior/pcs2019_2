@@ -1,5 +1,6 @@
 const Message = require('../models/Message')
 const Participant = require('../models/Participant')
+const Event = require('../models/Event')
 const Utils = require('../utils/utils')
 const Msgs = require('../utils/messages')
 const OB = 'Message'
@@ -98,14 +99,27 @@ module.exports = {
          }
 
          //consulta mensagens dos participantes no evento
-         let mensagens = await Message.find({ participantId: { $in: allIdsParticipants } }).populate('participantId')
+         let mensagens = await Message.find({ participantId: { $in: allIdsParticipants } }).populate({
+            path: 'participantId',
+            populate: {
+               path: 'userId',
+               model: 'User'
+            }
+         })
          if (mensagens.length === 0) {
             return Utils.retErr(res, 'Este evento não possui nenhum participante, portanto não tem nenhuma mensagem.')
          }
 
-         await mensagens.participantId.populate('userId')
+         let ret = [{}]
+         for (let i = 0; i < mensagens.length; i++) {
+            ret[i].id = mensagens[i].idMessage
+            ret[i].userId = mensagens[i].participantId.userId.idUser
+            ret[i].username = mensagens[i].participantId.userId.username
+            ret[i].messageDate = mensagens[i].messageDate
+            ret[i].message = mensagens[i].message
+         }
 
-         return Utils.retOk(req, res, mensagens)
+         return Utils.retOk(req, res, ret)
 
          /**
             [
