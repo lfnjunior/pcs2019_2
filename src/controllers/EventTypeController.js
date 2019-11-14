@@ -33,11 +33,11 @@ module.exports = {
       try {
          EventType.find({}, { _id: false }).exec((err, eventTypes) => {
             if (err) {
-               return Utils.retErr(req, res, 405, Msgs.msg(8, 'consultar', OBJ, err.message))
+               return Utils.retErr(res, Msgs.msg(8, 'consultar', OBJ, err.message))
             } else if (eventTypes.length === 0) {
-               return Utils.retErr(req, res, 404, Msgs.msg(9, OBJ, err.message))
+               return Utils.retErr(res, 404, Msgs.msg(9, OBJ, err.message))
             } else {
-               return Utils.retOk(req, res, 200, Utils.returnEventTypes(eventTypes))
+               return Utils.retOk(req, res, Utils.returnEventTypes(eventTypes))
             }
          })
       } catch (err) {

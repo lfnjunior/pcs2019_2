@@ -103,7 +103,7 @@ module.exports = {
          //verifica em participant se já existe algum user Vinculado
          //Caso exista bloqueia a exclusão
          let participants = await Participant.find({ userId: event._id }, '_id')
-         if (participants) {
+         if (participants.length > 0) {
             return Utils.retErr(res, Msgs.msg(11, OBJ, eventId, 'Participant'))
          }
 
@@ -127,6 +127,7 @@ module.exports = {
          if (!eventId) {
             return Utils.retErr(res, 400, Msgs.msg(3, OBJ))
          }
+
          let event = await Event.findOne({ idEvent: eventId })
             .populate('ownerId')
             .populate('eventTypeId')
@@ -149,11 +150,8 @@ module.exports = {
             .exec((err, events) => {
                if (err) {
                   return Utils.retErr(res, Msgs.msg(8, 'consultar', OBJ, err.message))
-               } else if (events.length === 0) {
-                  return Utils.retErr(res, Msgs.msg(9, OBJ, err.message))
-               } else {
-                  return Utils.retOk(req, res, Utils.returnEvents(events))
                }
+               return Utils.retOk(req, res, Utils.returnEvents(events))
             })
       } catch (err) {
          return Utils.retErr(res, Msgs.msg(3, 'getEvent', err.message))
@@ -191,16 +189,21 @@ module.exports = {
          } else if (start_date && end_date) {
             conditions = { startDate: { $gte: start, $lte: end } }
          } else if (event_type) {
-            conditions = { idEventType: event_type }
+            //verifica se já existe um user com o email
+            let eventType = await EventType.findOne({ idEventType: event_type }, '_id')
+            if (!eventType) {
+               return Utils.retErr(res, Msgs.msg(5, 'EventType', event_type))
+            }
+            conditions = { eventTypeId: eventType._id }
          }
-
+         console.log(conditions)
          if (!conditions) {
             return Utils.retErr(res, `Não foi fornecido nenhum filtro válido`)
          }
 
          Event.find(conditions, { _id: false })
-            .populate('user')
-            .populate('eventType')
+            .populate('ownerId')
+            .populate('eventTypeId')
             .exec((err, events) => {
                if (err) {
                   return Utils.retErr(res, Msgs.msg(8, 'consultar', OBJ, err.message))

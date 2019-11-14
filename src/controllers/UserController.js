@@ -115,14 +115,14 @@ module.exports = {
          //verifica em participant se já existe algum event Vinculado
          //Caso exista bloqueia a exclusão
          let participants = await Participant.find({ userId: user._id }, '_id')
-         if (participants) {
+         if (participants.length > 0) {
             return Utils.retErr(res, Msgs.msg(11, OBJ, userId, 'Participant'))
          }
 
          //verifica em event se já existe algum user Vinculado como ownerId
          //Caso exista bloqueia a exclusão
          let events = await Event.find({ ownerId: user._id }, '_id')
-         if (events) {
+         if (events.length > 0) {
             return Utils.retErr(res, Msgs.msg(11, OBJ, user, 'Event => (ownerId)'))
          }
 

@@ -1,6 +1,7 @@
 const Utils = require('../utils/utils')
 const User = require('../models/User')
 const Event = require('../models/Event')
+const Message = require('../models/Message')
 const Participant = require('../models/Participant')
 const Msgs = require('../utils/messages')
 const OB = 'Participant'
@@ -9,8 +10,8 @@ const OBJ = 'participante'
 module.exports = {
    async addParticipant(req, res) {
       try {
+         //valida entradas
          let newParticipant = await Utils.validateInput(req, OB, false)
-
          if (newParticipant.validationMessage) {
             return Utils.retErr(res, newParticipant.validationMessage)
          }
@@ -20,24 +21,31 @@ module.exports = {
          if (!event) {
             return Utils.retErr(res, Msgs.msg(5, 'Event', newParticipant.eventoId))
          }
-         newParticipant.eventoId = event._id
 
-         //consulta id do Event
-         let user = await User.findOne({ idUser: newParticipant.userId })
+         //consulta id do User
+         let user = await User.findOne({ idUser: newParticipant.userId }, '_id username')
          if (!user) {
             return Utils.retErr(res, Msgs.msg(5, 'User', newParticipant.userId))
          }
-         newParticipant.eventoId = event._id
 
+         //consulta id do User
+         let participantExists = await Participant.findOne({ $and: [{ userId: user._id }, { eventoId: event._id }] })
+         if (participantExists) {
+            return Utils.retErr(res, Msgs.msg(13, newParticipant.userId, newParticipant.eventoId))
+         }
+
+         //prepara o objeto para o banco
+         newParticipant.eventoId = event._id
+         newParticipant.userId = user._id
          newParticipant.registrationDate = new Date()
 
          let participant = await Participant.create(newParticipant)
          if (!participant) {
-            return Utils.retErr(res, Msgs.msg(2, 'inserir', OBJ, 'Verifique os dados'))
+            return Utils.retErr(res, Msgs.msg(2, 'inserir', OBJ, ' :/'))
          }
 
-         event.friends.push({
-            id: participant.IdParticipant,
+         event.participant.push({
+            id: participant.idParticipant,
             username: user.username,
             registrationDate: participant.registrationDate
          })
@@ -62,7 +70,7 @@ module.exports = {
             .populate('eventoId')
 
          if (!participant) {
-            return Utils.retErr(res, Msgs.msg(5, OBJ, participant))
+            return Utils.retErr(res, Msgs.msg(5, OBJ, participantId))
          }
 
          let retPart = {
@@ -80,10 +88,33 @@ module.exports = {
 
    async deleteParticipant(req, res) {
       try {
+         //valida entrada
          const { participantId } = req.params
          if (!participantId) {
             return Utils.retErr(res, Msgs.msg(3, OBJ))
          }
+
+         //procura participant
+         let participant = await Participant.findOne({ idParticipant: participantId })
+         if (!participant) {
+            return Utils.retErr(res, Msgs.msg(5, OBJ, participantId))
+         }
+
+         //procura event
+         let event = await Event.findOne({ idEvent: participant.eventoId })
+         if (event) {
+            event.participant.pull({ id: participantId })
+            await event.save(event)
+         }
+
+         //verifica em messages se já existe algum participant Vinculado
+         //Caso exista bloqueia a exclusão
+         let messages = await Message.find({ participantId: participantId })
+         if (messages) {
+            return Utils.retErr(res, Msgs.msg(11, OBJ, participantId, 'Message'))
+         }
+
+         //deleta participante
          Participant.deleteOne({ IdParticipant: participantId }, function(err, doc) {
             if (err) {
                return Utils.retErr(res, Msgs.msg(2, 'remover', OBJ, err.message))

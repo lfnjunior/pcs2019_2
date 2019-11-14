@@ -3,14 +3,9 @@ const AutoIncrement = require('mongoose-sequence')(mongoose)
 
 const MessageSchema = new mongoose.Schema(
    {
-      /*
       participantId: {
          type: mongoose.Schema.Types.ObjectId,
-         ref: 'User'
-      },*/
-      participantId: {
-         type: Number,
-         required: true
+         ref: 'Participant'
       },
       messageDate: {
          type: Date,
