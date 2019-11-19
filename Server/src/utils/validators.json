@@ -1,0 +1,168 @@
+{
+   "objects": {
+      "Event": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "title",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "description",
+               "required": false,
+               "type": "string"
+            },
+            {
+               "name": "startDate",
+               "required": true,
+               "type": "date-time"
+            },
+            {
+               "name": "endDate",
+               "required": true,
+               "type": "date-time"
+            },
+            {
+               "name": "street",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "neighborhood",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "city",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "referencePoint",
+               "required": false,
+               "type": "string"
+            },
+            {
+               "name": "eventTypeId",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "ownerId",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "status",
+               "required": false,
+               "type": "boolean"
+            }
+         ]
+      },
+      "User": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "username",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "email",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "password",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "birthdate",
+               "required": false,
+               "type": "date-time"
+            },
+            {
+               "name": "sex",
+               "required": false,
+               "type": "string"
+            }
+         ]
+      },
+      "EventType": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "name",
+               "required": true,
+               "type": "string"
+            }
+         ]
+      },
+      "Login": {
+         "bodyAttributes": [
+            {
+               "name": "email",
+               "required": true,
+               "type": "string"
+            },
+            {
+               "name": "password",
+               "required": true,
+               "type": "string"
+            }
+         ]
+      },
+      "Participant": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "userId",
+               "required": true,
+               "type": "objectReference"
+            },
+            {
+               "name": "eventoId",
+               "required": true,
+               "type": "objectReference"
+            }
+         ]
+      },
+      "Message": {
+         "bodyAttributes": [
+            {
+               "name": "id",
+               "required": false,
+               "type": "int64"
+            },
+            {
+               "name": "participantId",
+               "required": true,
+               "type": "int64"
+            },
+            {
+               "name": "message",
+               "required": true,
+               "type": "string"
+            }
+         ]
+      }
+   }
+}
