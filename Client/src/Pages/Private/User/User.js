@@ -25,58 +25,33 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormLabel from '@material-ui/core/FormLabel'
 import { useSnackbar } from 'notistack'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Switch from '@material-ui/core/Switch';
 import isEmail from 'isemail'
 import moment from 'moment'
-
-
-
 import clsx from 'clsx'
 import useStyles from './useStyles'
 import { mainListItems } from '../../../Components/ListItems'
-import { doLogout, TOKEN_KEY } from '../../../Services/utils'
+import { doLogout } from '../../../Services/utils'
 import api from '../../../Services/api'
 
 
 export default function User({ history }) {
    const [openListItens, setOpenListItens] = React.useState(false)
-
-   const handleDrawerOpen = () => {
-      setOpenListItens(true)
-   }
-
-   const handleDrawerClose = () => {
-      setOpenListItens(false)
-   }
-
-   const classes = useStyles()
-
    const { enqueueSnackbar } = useSnackbar() //success, error, warning, info, or default
    const [loading, setLoading] = React.useState(false)
    const [idUser, setIdUser] = useState(0)
    const [username, setUsername] = useState('')
-   const [password, setPassword] = useState('')
-   const [password2, setPassword2] = useState('')
+   // const [password, setPassword] = useState('')
+   // const [password2, setPassword2] = useState('')
    const [email, setEmail] = useState('')
    const [birthdate, setBirthdate] = useState(null)
    const [sex, setSex] = useState('')
-
-   useEffect(() => {
-      async function loadUser() {
-         let config = { headers: { 'Authorization': "bearer " + localStorage.getItem(TOKEN_KEY) } };
-         const response = await api.post('/me', {}, config)
-         if (response.data.idUser) setIdUser(response.data.idUser)
-         if (response.data.username) setUsername(response.data.username)
-         if (response.data.email) setEmail(response.data.email)
-         if (response.data.password) {
-            setPassword(response.data.password)
-            setPassword2(response.data.password)
-         }
-         if (response.data.sex) setSex(response.data.sex)
-         if (response.data.birthdate) setBirthdate(response.data.birthdate)
-      }
-      loadUser()
-   }, [])
-
+   const [disabledForm, setDisabledForm] = useState(true)
 
    async function snack(msg, v = 'error') {
       let snack = {
@@ -87,19 +62,78 @@ export default function User({ history }) {
       enqueueSnackbar(msg, snack)
    }
 
+   const handleDrawerOpen = () => {
+      setOpenListItens(true)
+   }
+
+   const handleDrawerClose = () => {
+      setOpenListItens(false)
+   }
+
+   const [openAlert, setOpenAlert] = useState(false);
+
+   const handleOpenAlert = () => {
+      setOpenAlert(true);
+   };
+
+   const handleCloseAlert = () => {
+      setOpenAlert(false);
+   };
+
+   const handleEditForm = () => {
+      setDisabledForm(!disabledForm)
+   };
+
+   const classes = useStyles()
+
+
+   useEffect(() => {
+      async function loadUser() {
+         let userId = localStorage.getItem('userId')
+         let token = localStorage.getItem('token')
+         if (userId && token) {
+            await api
+               .get(`/user/${userId}`, { headers: { token: token } })
+               .then(response => {
+                  console.log(response.data)
+                  if (response.status === 200) {
+                     if (response.data.id) setIdUser(response.data.id)
+                     if (response.data.username) setUsername(response.data.username)
+                     if (response.data.email) setEmail(response.data.email)
+                     if (response.data.sex) setSex(response.data.sex)
+                     if (response.data.birthdate) setBirthdate(response.data.birthdate)
+                  }
+               })
+               .catch(function (error) {
+                  console.log(error.config.data)
+                  if (error.response) {
+                     if (error.response.status === 400) {
+                        this.snack(error.response.data.message)
+                     }
+                  }
+               })
+         } else {
+            this.snack('Não foi encontrado token ou id do usuário armazenados localmente')
+         }
+
+      }
+      loadUser()
+   }, [])
+
    const handleExitApp = () => {
       doLogout()
       history.push('/')
    }
+
 
    async function handleSubmit(event) {
       event.preventDefault()
       setLoading(prevLoading => !prevLoading)
       if (username === '') snack('Campo Nome de usuário é obrigatório')
       else if (email === '') snack('Campo Email é obrigatório')
-      else if (password === '') snack('Campo Senha é obrigatório')
-      else if (password2 === '') snack('Campo Repetir Senha é obrigatório')
-      else if (password !== password2) snack('As senhas devem ser identicas')
+      // else if (password === '') snack('Campo Senha é obrigatório')
+      // else if (password2 === '') snack('Campo Repetir Senha é obrigatório')
+      // else if (password !== password2) snack('As senhas devem ser identicas')
       else if (!isEmail.validate(email)) snack('Email inválido')
       else {
          let bdt = birthdate ? moment(birthdate).format('YYYY-MM-DDTHH:mm:ss.sssZ') : null
@@ -107,24 +141,53 @@ export default function User({ history }) {
             .put('/user', {
                id: idUser,
                username: username,
-               password: password,
+               // password: password,
                email: email,
                birthdate: bdt,
                sex: sex
-            })
+            },
+               { headers: { Token: localStorage.getItem('token') } })
             .then(response => {
+               if (response.status === 200) {
+                  snack('Cadastro do usuário atualizado com sucesso.', 'success')
+               }
+               console.log(response.status)
                console.log(response.data)
-               snack('Cadastro do usuário atualizado com sucesso.','success')
             })
             .catch(function (error) {
                console.log(error.config.data)
                if (error.response) {
-                  if (error.response.status === 405) {
+                  if (error.response.status === 400) {
                      snack(error.response.data.message)
                   }
                }
             })
       }
+      setLoading(prevLoading => !prevLoading)
+   }
+
+   async function handleConfirmDelete(event) {
+      event.preventDefault()
+      setLoading(prevLoading => !prevLoading)
+      await api
+         .delete(`/user/${idUser}`, { headers: { Token: localStorage.getItem('token') } })
+         .then(response => {
+            if (response.status === 200) {
+               localStorage.removeItem('userId')
+               localStorage.removeItem('token')
+               history.push('/')
+            }
+            console.log(response.status)
+            console.log(response.data)
+         })
+         .catch(function (error) {
+            console.log(error.config.data)
+            if (error.response) {
+               if (error.response.status === 400) {
+                  snack(error.response.data.message)
+               }
+            }
+         })
       setLoading(prevLoading => !prevLoading)
    }
 
@@ -142,7 +205,7 @@ export default function User({ history }) {
                   <MenuIcon />
                </IconButton>
                <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                  Dashboard
+                  Dados cadastrais
                </Typography>
                <IconButton color="inherit" onClick={handleExitApp}>
                   <ExitToAppIcon />
@@ -170,7 +233,13 @@ export default function User({ history }) {
             <div className={classes.appBarSpacer} />
             <div className={classes.heroContent}>
                <Typography className={classes.heroTitle} component="h4" variant="h5" align="left" color="textPrimary" gutterBottom>
-                  Dados cadastrais
+                     Edição
+                  <Switch
+                     //checked={state.checkedB}
+                     onChange={handleEditForm}
+                     value="checkedB"
+                     color="primary"
+                     inputProps={{ 'aria-label': 'primary checkbox' }} />
                </Typography>
             </div>
             <Container component="main" maxWidth="xs" className={classes.containerForm}>
@@ -183,47 +252,48 @@ export default function User({ history }) {
                               autoComplete="fname"
                               name="firstName"
                               variant="outlined"
+                              disabled={disabledForm}
                               required
                               fullWidth
                               value={username}
                               onChange={event => setUsername(event.target.value)}
                               id="firstName"
                               label="Nome de usuário"
-                              autoFocus
-                           />
+                              autoFocus/>
                         </Grid>
                         <Grid item xs={12}>
                            <TextField
                               variant="outlined"
                               required
                               fullWidth
+                              disabled={disabledForm}
                               value={email}
                               onChange={event => setEmail(event.target.value)}
                               id="email"
                               label="Email"
                               type="email"
                               name="email"
-                              autoComplete="email"
-                           />
+                              autoComplete="email"/>
                         </Grid>
-                        <Grid item xs={12}>
+                        {/* <Grid item xs={12}>
                            <TextField
                               variant="outlined"
                               required
                               fullWidth
+                              disabled={disabledForm}
                               value={password}
                               onChange={event => setPassword(event.target.value)}
                               name="password"
                               label="Senha"
                               type="password"
                               id="password"
-                              autoComplete="current-password"
-                           />
+                              autoComplete="current-password"/>
                         </Grid>
                         <Grid item xs={12}>
                            <TextField
                               variant="outlined"
                               required
+                              disabled={disabledForm}
                               fullWidth
                               value={password2}
                               onChange={event => setPassword2(event.target.value)}
@@ -231,9 +301,8 @@ export default function User({ history }) {
                               label="Repetir senha"
                               type="password"
                               id="password2"
-                              autoComplete="current-password"
-                           />
-                        </Grid>
+                              autoComplete="current-password"/>
+                        </Grid> */}
                         <Grid item xs={12}>
                            <div className={classes.date}>
                               <FormLabel component="legend">Sexo</FormLabel>
@@ -243,8 +312,8 @@ export default function User({ history }) {
                                  value={sex}
                                  onChange={event => setSex(event.target.value)}
                                  row>
-                                 <FormControlLabel value="M" control={<Radio color="primary" />} label="Masculino" labelPlacement="end" />
-                                 <FormControlLabel value="F" control={<Radio color="primary" />} label="Feminino" labelPlacement="end" />
+                                 <FormControlLabel value="M" control={<Radio color="primary" />} label="Masculino" labelPlacement="end" disabled={disabledForm} />
+                                 <FormControlLabel value="F" control={<Radio color="primary" />} label="Feminino" labelPlacement="end" disabled={disabledForm} />
                               </RadioGroup>
                            </div>
                         </Grid>
@@ -254,6 +323,7 @@ export default function User({ history }) {
                                  autoOk
                                  fullWidth
                                  variant="inline"
+                                 disabled={disabledForm}
                                  inputVariant="outlined"
                                  label="Data de nascimento"
                                  format="dd/MM/yyyy"
@@ -265,21 +335,21 @@ export default function User({ history }) {
                         </Grid>
                      </Grid>
                      <Grid container justify="flex-end">
-                        <Button
-                           variant="contained"
-                           color="primary"
-                           className={classes.submit}
-                           startIcon={<SaveIcon />}
-                           type="submit">
-                           {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Gravar</>}
-                        </Button>
-
+                        {!disabledForm &&
+                           <Button
+                              variant="contained"
+                              color="primary"
+                              className={classes.submit}
+                              startIcon={<SaveIcon />}
+                              type="submit">
+                              {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Gravar</>}
+                           </Button>}
                         <Button
                            variant="contained"
                            color="secondary"
+                           onClick={handleOpenAlert}
                            className={classes.submit}
-                           startIcon={<DeleteIcon />}
-                        >
+                           startIcon={<DeleteIcon />}>
                            {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Excluir</>}
                         </Button>
                      </Grid>
@@ -287,6 +357,28 @@ export default function User({ history }) {
                </div>
             </Container>
          </main>
+         <div>
+            <Dialog
+               open={openAlert}
+               onClose={handleCloseAlert}
+               aria-labelledby="alert-dialog-title"
+               aria-describedby="alert-dialog-description">
+               <DialogTitle id="alert-dialog-title">{"Alerta"}</DialogTitle>
+               <DialogContent>
+                  <DialogContentText id="alert-dialog-description">
+                     Após a exclusão você será redirecionado para fora do sistema,<br /> e não será possível recuperar a conta.<br /> Confirma a exclusão?
+                  </DialogContentText>
+               </DialogContent>
+               <DialogActions>
+                  <Button onClick={handleConfirmDelete} color="primary">
+                     Confirmar
+                  </Button>
+                  <Button onClick={handleCloseAlert} color="primary" autoFocus>
+                     Cancelar
+                  </Button>
+               </DialogActions>
+            </Dialog>
+         </div>
       </div>
    )
 }

@@ -12,7 +12,6 @@ import api from '../../../Services/api';
 import { useSnackbar } from 'notistack';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import useStyles from './useStyles';
-import { TOKEN_KEY } from '../../../Services/utils';
 
 export default function SignIn({ history }) {
   const classes = useStyles();
@@ -48,9 +47,16 @@ export default function SignIn({ history }) {
           //console.log(response);
           //console.log(response.data);
           if (response.status === 200) {
-            localStorage.setItem(TOKEN_KEY, response.data.token);
-            localStorage.setItem('EMAIL', email);
-            history.push('/dashboard');
+            if (response.data.token && response.data.user) {
+              console.log(response.data.user)
+              localStorage.setItem('token', response.data.token);
+              localStorage.setItem('userId', response.data.user.id);
+              history.push('/dashboard');
+            } else {
+                console.log("Retorno do Servidor:");
+                console.log(response.data);
+                snack("Token ou Usuário Enviados Incorretamente, Verifique o Console")
+            }
           }
         })
         .catch(function(error) {
@@ -58,7 +64,9 @@ export default function SignIn({ history }) {
           console.log(error.config.data);
           if (error.response) {
             if (error.response.status === 400) {
-              snack(error.response.data.message);
+              if (error.response.data.message) {
+                snack(error.response.data.message);
+              }
             }
             //console.log(error.response.data);
             //console.log(error.response.headers);

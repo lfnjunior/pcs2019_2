@@ -65,14 +65,14 @@ export default function SignUp({ history }) {
             })
             .then(response => {
                console.log(response.data)
-               if (response.status === 201) {
+               if (response.status === 200) {
                   history.push('/')
                }
             })
             .catch(function(error) {
                console.log(error.config.data)
                if (error.response) {
-                  if (error.response.status === 405) {
+                  if (error.response.status === 400) {
                      snack(error.response.data.message)
                   }
                }

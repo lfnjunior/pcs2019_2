@@ -24,7 +24,7 @@ import clsx from 'clsx'
 import useStyles from './useStyles'
 import { mainListItems } from '../../../Components/ListItems'
 import ModalEvent from '../../../Components/ModalEvent'
-import { doLogout, TOKEN_KEY } from '../../../Services/utils'
+import { doLogout } from '../../../Services/utils'
 import api from '../../../Services/api'
 
 
@@ -34,7 +34,7 @@ export default function Dashboard({ history }) {
    const [events, setEvents] = useState([]);  
    const [event, setEvent] = useState(null);  
 
-   const [user, setUser] = useState(null);  
+   //const [user, setUser] = useState(null);  
 
    const [openModal, setOpenModal] = React.useState(false);
    const [scroll, setScroll] = React.useState('body');
@@ -70,14 +70,14 @@ export default function Dashboard({ history }) {
       loadEvents()
    }, [])
 
-   useEffect(() => {
-      async function loadUser() {
-         let config = {headers: {'Authorization': "bearer " + localStorage.getItem(TOKEN_KEY)}};
-         const response = await api.post('/me',{},config)
-         setUser(response.data);
-      }
-      loadUser()
-   }, [])
+   // useEffect(() => {
+   //    async function loadUser() {
+   //       let config = { headers: { 'token' : localStorage.getItem('token') } };
+   //       const response = await api.post('/me',{},config)
+   //       setUser(response.data);
+   //    }
+   //    loadUser()
+   // }, [])
 
    const descriptionElementRef = React.useRef(null);
    useEffect(() => {
@@ -113,9 +113,9 @@ export default function Dashboard({ history }) {
             variant="permanent"
             classes={{paper: clsx(classes.drawerPaper, !openListItens && classes.drawerPaperClose)}}open={openListItens}>
             <div className={classes.toolbarIcon}> 
-               {user &&
+               {localStorage.getItem('user') &&
                   <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                     {user.username}
+                     {localStorage.getItem('user').username}
                   </Typography>
                }   
                <IconButton onClick={handleDrawerClose}>

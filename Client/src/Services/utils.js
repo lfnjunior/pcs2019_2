@@ -1,11 +1,9 @@
-export const TOKEN_KEY = 'pcs2019_2'
-
 export const doLogout = () => {
-   localStorage.removeItem(TOKEN_KEY)
+   localStorage.removeItem('token')
 }
 
 export const isLogin = () => {
-   if (localStorage.getItem(TOKEN_KEY)) {
+   if (localStorage.getItem('token')) {
       return true
    } else {
       return false

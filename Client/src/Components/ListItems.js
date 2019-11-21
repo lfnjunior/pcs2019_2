@@ -4,12 +4,12 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import List from "@material-ui/core/List";
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
-import DashboardIcon from "@material-ui/icons/Dashboard";
+//import DashboardIcon from "@material-ui/icons/Dashboard";
 
 import { Link } from "react-router-dom";
 
 const linksButtons = [
-  { text: "DashBoard", pathLink: "/", component: <DashboardIcon /> },
+  //{ text: "DashBoard", pathLink: "/", component: <DashboardIcon /> },
   { text: "Usuário", pathLink: "/user", component: <AccountBoxIcon /> }
 ];
 
