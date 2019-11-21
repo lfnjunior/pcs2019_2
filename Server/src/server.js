@@ -4,8 +4,8 @@ const cors = require("cors");
 
 const routes = require("./routes");
 
-const PORT_LISTENING = 3000;
-const DB_HOST = "127.0.0.1";
+const PORT_LISTENING = 3001;
+const DB_HOST = "35.247.198.63";
 const DB_NAME = "pcs2019_2";
 
 const app = express();

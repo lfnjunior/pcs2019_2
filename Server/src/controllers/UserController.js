@@ -39,6 +39,9 @@ module.exports = {
     try {
       //valida as entradas
       let updtUser = await Utils.validateInput(req, OB, true)
+      
+      let idUser = req.body.idUser
+
       if (updtUser.validationMessage) {
         return Utils.retErr(res, updtUser.validationMessage)
       }
@@ -46,6 +49,12 @@ module.exports = {
       let userExist = await User.findOne({ $and: [{ email: updtUser.email }, { idUser: { $ne: updtUser.idUser } }] })
       if (userExist) {
         return Utils.retErr(res, Msgs.msg(1, 'email'))
+      }
+
+      //updtUser.idUser => é o id do usuário que foi solicitado alterar
+      //idUser => é o id do usuário que foi solicitou a alteração
+      if (updtUser.idUser != idUser) {
+        return Utils.retErr(res, `Usuário id ${idUser} não está autorizado a atualizar o usuário ${updtUser.idUser}` )
       }
 
       //atualiza user
@@ -104,6 +113,14 @@ module.exports = {
       const { userId } = req.params
       if (!userId) {
         return Utils.retErr(res, Msgs.msg(3, OBJ))
+      }
+
+      let idUser = req.body.idUser
+
+      //userId => é o id do usuário que foi solicitado alterar
+      //idUser => é o id do usuário que foi solicitou a alteração
+      if (userId != idUser) {
+        return Utils.retErr(res, `Usuário id ${idUser} não está autorizado a deletar o usuário ${userId}` )
       }
 
       //consulta id do User

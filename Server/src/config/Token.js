@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt')
 
 module.exports = {
     generateToken(params) {
-        return jwt.sign( params , authConfig.secret , { expiresIn: '1h' })         
+        return jwt.sign( params , authConfig.secret , { expiresIn: '4h' })         
     },
     compareHash(hash, password) {
       return bcrypt.compare(hash, password);

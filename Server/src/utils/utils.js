@@ -145,7 +145,7 @@ module.exports = {
          id: user.idUser,
          username: user.username,
          email: user.email,
-         password: showPassword ? user.password : undefined,
+         //password: showPassword ? user.password : undefined,
          birthdate: user.birthdate ? this.formatDateTime(user.birthdate) : undefined,
          sex: user.sex ? user.sex : undefined
       }
