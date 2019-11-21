@@ -55,30 +55,35 @@ export default function SignUp({ history }) {
       else if (!isEmail.validate(email)) snack('Email inválido')
       else {
          let bdt = birthdate ? moment(birthdate).format('YYYY-MM-DDTHH:mm:ss.sssZ') : null
+         let body =  {
+            username: username,
+            password: password,
+            email: email,
+            birthdate: bdt,
+            sex: sex
+         }
+         console.log('Envio POST => /user :')
+         console.log({ email,password })
          await api
-            .post('/user', {
-               username: username,
-               password: password,
-               email: email,
-               birthdate: bdt,
-               sex: sex
-            })
+            .post('/user', body)
             .then(response => {
+               console.log('Resposta POST => /user :')
+               console.log(response.status)
                console.log(response.data)
                if (response.status === 200) {
                   history.push('/')
                }
             })
             .catch(function(error) {
-               console.log(error.config.data)
-               if (error.response) {
-                  if (error.response.status === 400) {
-                     snack(error.response.data.message)
-                  }
+               console.log('Resposta POST => /user :')
+               console.log(error.response.status)
+               console.log(error.response.data)
+               if (error.response.status === 400) {
+                  snack(error.response.data.message)
                }
+               setLoading(prevLoading => !prevLoading)
             })
       }
-      setLoading(prevLoading => !prevLoading)
    }
 
    return (

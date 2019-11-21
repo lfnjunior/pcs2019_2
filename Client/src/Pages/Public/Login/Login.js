@@ -13,7 +13,7 @@ import { useSnackbar } from 'notistack';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import useStyles from './useStyles';
 
-export default function SignIn({ history }) {
+export default function Login({ history }) {
   const classes = useStyles();
 
   const { enqueueSnackbar } = useSnackbar(); //success, error, warning, info, or default
@@ -32,54 +32,45 @@ export default function SignIn({ history }) {
 
   async function loginSubmit(event) {
     event.preventDefault();
-
     setLoading(prevLoading => !prevLoading);
 
     if (email === '') snack('Campo email é obrigatório');
     else if (password === '') snack('Campo Senha é obrigatório');
     else {
+      console.log('Envio POST => /user/login :')
+      console.log({ email,password })
       await api
         .post('/user/login', {
           email,
           password
         })
         .then(response => {
-          //console.log(response);
-          //console.log(response.data);
+          console.log('Resposta POST => /user/login :')
+          console.log(response.status)
+          console.log(response.data)
           if (response.status === 200) {
             if (response.data.token && response.data.user) {
-              console.log(response.data.user)
               localStorage.setItem('token', response.data.token);
               localStorage.setItem('userId', response.data.user.id);
               history.push('/dashboard');
             } else {
-                console.log("Retorno do Servidor:");
-                console.log(response.data);
                 snack("Token ou Usuário Enviados Incorretamente, Verifique o Console")
+                setLoading(prevLoading => !prevLoading);
             }
           }
         })
         .catch(function(error) {
-          //console.log('error.config');
-          console.log(error.config.data);
-          if (error.response) {
+          console.log('Resposta POST => /user/login :')
+          console.log(error.response.status)
+          console.log(error.response.data)
             if (error.response.status === 400) {
               if (error.response.data.message) {
                 snack(error.response.data.message);
               }
             }
-            //console.log(error.response.data);
-            //console.log(error.response.headers);
-          } else if (error.request) {
-            console.log('error.request');
-            console.log(error.request);
-          } else {
-            console.log('"Error", error.message:');
-            console.log('Error', error.message);
-          }
+            setLoading(prevLoading => !prevLoading);
         });
     }
-    setLoading(prevLoading => !prevLoading);
   }
 
   return (

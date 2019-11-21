@@ -10,6 +10,13 @@ module.exports = {
 
   async loginUser(req, res) {
     try {
+      if (req.route.path && req.method){
+         console.log(`Nova requisição: ${req.route.path} => ${req.method}`)
+      }
+      
+      console.log('Corpo da requisição')
+      console.log(req.body)
+      
       let auth = await Utils.validateInput(req, 'Login', false)
       if (auth.validationMessage) {
         return Utils.retErr(res, auth.validationMessage)

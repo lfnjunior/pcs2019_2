@@ -14,6 +14,7 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import Button from '@material-ui/core/Button';
 import SaveIcon from '@material-ui/icons/Save';
+import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import TextField from '@material-ui/core/TextField'
 import DateFnsUtils from '@date-io/date-fns'
@@ -30,7 +31,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import Switch from '@material-ui/core/Switch';
 import isEmail from 'isemail'
 import moment from 'moment'
 import clsx from 'clsx'
@@ -46,12 +46,14 @@ export default function User({ history }) {
    const [loading, setLoading] = React.useState(false)
    const [idUser, setIdUser] = useState(0)
    const [username, setUsername] = useState('')
-   // const [password, setPassword] = useState('')
-   // const [password2, setPassword2] = useState('')
+   const [password, setPassword] = useState('')
+   const [password2, setPassword2] = useState('')
    const [email, setEmail] = useState('')
    const [birthdate, setBirthdate] = useState(null)
    const [sex, setSex] = useState('')
    const [disabledForm, setDisabledForm] = useState(true)
+
+   const classes = useStyles()
 
    async function snack(msg, v = 'error') {
       let snack = {
@@ -80,21 +82,29 @@ export default function User({ history }) {
       setOpenAlert(false);
    };
 
-   const handleEditForm = () => {
+   const handleEditForm = (event) => {
+      event.preventDefault()
       setDisabledForm(!disabledForm)
    };
 
-   const classes = useStyles()
+   const handleExitApp = () => {
+      doLogout()
+      history.push('/')
+   }
 
 
    useEffect(() => {
       async function loadUser() {
          let userId = localStorage.getItem('userId')
          let token = localStorage.getItem('token')
+         console.log(`Envio GET => /user/${userId} :`)
+         console.log( { headers: { token: token } } )
          if (userId && token) {
             await api
                .get(`/user/${userId}`, { headers: { token: token } })
                .then(response => {
+                  console.log(`Resposta GET => /user/${userId} :`)
+                  console.log(response.status)
                   console.log(response.data)
                   if (response.status === 200) {
                      if (response.data.id) setIdUser(response.data.id)
@@ -105,7 +115,9 @@ export default function User({ history }) {
                   }
                })
                .catch(function (error) {
-                  console.log(error.config.data)
+                  console.log(`Resposta GET => /user/${userId} :`)
+                  console.log(error.response.status)
+                  console.log(error.response.data)
                   if (error.response) {
                      if (error.response.status === 400) {
                         this.snack(error.response.data.message)
@@ -115,51 +127,49 @@ export default function User({ history }) {
          } else {
             this.snack('Não foi encontrado token ou id do usuário armazenados localmente')
          }
-
       }
       loadUser()
    }, [])
-
-   const handleExitApp = () => {
-      doLogout()
-      history.push('/')
-   }
-
 
    async function handleSubmit(event) {
       event.preventDefault()
       setLoading(prevLoading => !prevLoading)
       if (username === '') snack('Campo Nome de usuário é obrigatório')
       else if (email === '') snack('Campo Email é obrigatório')
-      // else if (password === '') snack('Campo Senha é obrigatório')
-      // else if (password2 === '') snack('Campo Repetir Senha é obrigatório')
-      // else if (password !== password2) snack('As senhas devem ser identicas')
+      else if (password === '') snack('Campo Senha é obrigatório')
+      else if (password2 === '') snack('Campo Repetir Senha é obrigatório')
+      else if (password !== password2) snack('As senhas devem ser identicas')
       else if (!isEmail.validate(email)) snack('Email inválido')
       else {
          let bdt = birthdate ? moment(birthdate).format('YYYY-MM-DDTHH:mm:ss.sssZ') : null
+         let body = {
+            id: idUser,
+            username: username,
+            password: password,
+            email: email,
+            birthdate: bdt,
+            sex: sex
+         }
+         let config =  { headers: { Token: localStorage.getItem('token') } }
+         console.log(`Envio PUT => /user/${idUser} :`)
+         console.log( body )
+         console.log( config )
          await api
-            .put('/user', {
-               id: idUser,
-               username: username,
-               // password: password,
-               email: email,
-               birthdate: bdt,
-               sex: sex
-            },
-               { headers: { Token: localStorage.getItem('token') } })
+            .put('/user', body, config)
             .then(response => {
+               console.log('Resposta PUT => /user :')
+               console.log(response.status)
+               console.log(response.data)
                if (response.status === 200) {
                   snack('Cadastro do usuário atualizado com sucesso.', 'success')
                }
-               console.log(response.status)
-               console.log(response.data)
             })
             .catch(function (error) {
-               console.log(error.config.data)
-               if (error.response) {
-                  if (error.response.status === 400) {
-                     snack(error.response.data.message)
-                  }
+               console.log('Resposta PUT => /user :')
+               console.log(error.response.status)
+               console.log(error.response.data)
+               if (error.response.status === 400) {
+                  snack(error.response.data.message)
                }
             })
       }
@@ -169,26 +179,32 @@ export default function User({ history }) {
    async function handleConfirmDelete(event) {
       event.preventDefault()
       setLoading(prevLoading => !prevLoading)
+      let config = { headers: { token: localStorage.getItem('token') } }
+      console.log(`Envio DELETE => /user/${idUser} :`)
+      console.log( config )
       await api
-         .delete(`/user/${idUser}`, { headers: { Token: localStorage.getItem('token') } })
+         .delete(`/user/${idUser}`, config)
          .then(response => {
+            console.log(`Resposta DELETE => /user/${idUser} :`)
+            console.log(response.status)
+            console.log(response.data)
             if (response.status === 200) {
                localStorage.removeItem('userId')
                localStorage.removeItem('token')
                history.push('/')
+            } else {
+               setLoading(prevLoading => !prevLoading)
             }
-            console.log(response.status)
-            console.log(response.data)
          })
          .catch(function (error) {
-            console.log(error.config.data)
-            if (error.response) {
-               if (error.response.status === 400) {
-                  snack(error.response.data.message)
-               }
+            console.log(`Resposta DELETE => /user/${idUser} :`)
+            console.log(error.response.status)
+            console.log(error.response.data)
+            if (error.response.status === 400) {
+               snack(error.response.data.message)
             }
+            setLoading(prevLoading => !prevLoading)
          })
-      setLoading(prevLoading => !prevLoading)
    }
 
    return (
@@ -231,17 +247,6 @@ export default function User({ history }) {
          </Drawer>
          <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <div className={classes.heroContent}>
-               <Typography className={classes.heroTitle} component="h4" variant="h5" align="left" color="textPrimary" gutterBottom>
-                     Edição
-                  <Switch
-                     //checked={state.checkedB}
-                     onChange={handleEditForm}
-                     value="checkedB"
-                     color="primary"
-                     inputProps={{ 'aria-label': 'primary checkbox' }} />
-               </Typography>
-            </div>
             <Container component="main" maxWidth="xs" className={classes.containerForm}>
                <CssBaseline />
                <div className={classes.paperCad}>
@@ -275,7 +280,7 @@ export default function User({ history }) {
                               name="email"
                               autoComplete="email"/>
                         </Grid>
-                        {/* <Grid item xs={12}>
+                        <Grid item xs={12}>
                            <TextField
                               variant="outlined"
                               required
@@ -302,7 +307,7 @@ export default function User({ history }) {
                               type="password"
                               id="password2"
                               autoComplete="current-password"/>
-                        </Grid> */}
+                        </Grid> 
                         <Grid item xs={12}>
                            <div className={classes.date}>
                               <FormLabel component="legend">Sexo</FormLabel>
@@ -335,23 +340,41 @@ export default function User({ history }) {
                         </Grid>
                      </Grid>
                      <Grid container justify="flex-end">
-                        {!disabledForm &&
-                           <Button
-                              variant="contained"
-                              color="primary"
-                              className={classes.submit}
-                              startIcon={<SaveIcon />}
-                              type="submit">
-                              {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Gravar</>}
-                           </Button>}
-                        <Button
-                           variant="contained"
-                           color="secondary"
-                           onClick={handleOpenAlert}
-                           className={classes.submit}
-                           startIcon={<DeleteIcon />}>
-                           {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Excluir</>}
-                        </Button>
+                        <Grid container>
+                              {disabledForm ? (
+                                 <Grid item xs>
+                                    <Button
+                                       variant="contained"
+                                       color="primary"
+                                       className={classes.submit}
+                                       startIcon={<EditIcon />}
+                                       onClick={handleEditForm}>
+                                       <>Editar</>
+                                    </Button>
+                                 </Grid>
+                              ):(
+                                 <Grid item xs>
+                                    <Button
+                                       variant="contained"
+                                       color="primary"
+                                       className={classes.submit}
+                                       startIcon={<SaveIcon />}
+                                       type="submit">
+                                       {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Gravar</>}
+                                    </Button>
+                                 </Grid>
+                              )}
+                           <Grid item>
+                              <Button
+                                 variant="contained"
+                                 color="secondary"
+                                 onClick={handleOpenAlert}
+                                 className={classes.submit}
+                                 startIcon={<DeleteIcon />}>
+                                 {loading ? <CircularProgress size="1.55rem" color="inherit" /> : <>Excluir</>}
+                              </Button>
+                           </Grid>
+                        </Grid>
                      </Grid>
                   </form>
                </div>

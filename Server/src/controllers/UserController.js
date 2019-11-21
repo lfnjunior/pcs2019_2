@@ -10,6 +10,13 @@ const OBJ = 'usuário'
 module.exports = {
   async addUser(req, res) {
     try {
+      if (req.route.path && req.method){
+         console.log(`Nova requisição: ${req.route.path} => ${req.method}`)
+      }
+
+      console.log('Corpo da requisição')
+      console.log(req.body)
+
       //valida entradas
       let newUser = await Utils.validateInput(req, OB, false)
       if (newUser.validationMessage) {
