@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const allowCors = require('./config/cors')
 const cors = require("cors");
 
 const routes = require("./routes");
@@ -9,6 +10,7 @@ const DB_HOST = "35.247.198.63";
 const DB_NAME = "pcs2019_2";
 
 const app = express();
+//app.use(allowCors)
 
 const server = require("http").Server(app);
 

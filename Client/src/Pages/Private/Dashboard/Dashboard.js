@@ -7,23 +7,14 @@ import List from '@material-ui/core/List'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import IconButton from '@material-ui/core/IconButton'
-import Grid from '@material-ui/core/Grid'
 import MenuIcon from '@material-ui/icons/Menu'
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
-import Container from '@material-ui/core/Container';
-import Dialog from '@material-ui/core/Dialog';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import DialogActions from '@material-ui/core/DialogActions';
+import MaterialTable from 'material-table';
 
 import clsx from 'clsx'
 import useStyles from './useStyles'
 import { mainListItems } from '../../../Components/ListItems'
-import ModalEvent from '../../../Components/ModalEvent'
 import { doLogout } from '../../../Services/utils'
 import api from '../../../Services/api'
 
@@ -32,22 +23,7 @@ export default function Dashboard({ history }) {
    const classes = useStyles()
    const [openListItens, setOpenListItens] = React.useState(false)
    const [events, setEvents] = useState([]);  
-   const [event, setEvent] = useState(null);  
 
-   //const [user, setUser] = useState(null);  
-
-   const [openModal, setOpenModal] = React.useState(false);
-   const [scroll, setScroll] = React.useState('body');
- 
-   const handleOpenModal = (scrollType, evt) => () => {
-      setEvent(evt)
-      setOpenModal(true);
-      setScroll(scrollType);
-   };
- 
-   const handleCloseModal = () => {
-      setOpenModal(false);
-   };
 
    const handleDrawerOpen = () => {
       setOpenListItens(true)
@@ -61,23 +37,15 @@ export default function Dashboard({ history }) {
       doLogout()
       history.push('/') 
    }
-
+   
    useEffect(() => {
       async function loadEvents() {
-         const response = await api.get('/event')
+         let token = localStorage.getItem('token')
+         const response = await api.get('/event', { headers: { token: token } })
          setEvents(response.data);
       }
       loadEvents()
-   }, [])
-
-   // useEffect(() => {
-   //    async function loadUser() {
-   //       let config = { headers: { 'token' : localStorage.getItem('token') } };
-   //       const response = await api.post('/me',{},config)
-   //       setUser(response.data);
-   //    }
-   //    loadUser()
-   // }, [])
+   }, []) 
 
    const descriptionElementRef = React.useRef(null);
    useEffect(() => {
@@ -85,7 +53,17 @@ export default function Dashboard({ history }) {
      if (descriptionElement !== null) {
        descriptionElement.focus();
      }
-   }, [openModal]);
+   }, []);
+
+
+   const [tabela] = useState({
+      columns: [
+        { title: 'Nome', field: 'title' },
+        { title: 'Data de Início', field: 'startDate' },
+        { title: 'Data de Términno', field: 'endDate' },
+        { title: 'Cidade', field: 'city' }
+      ]
+    });
 
    return (
       <div className={classes.root}>
@@ -131,72 +109,87 @@ export default function Dashboard({ history }) {
             <React.Fragment>
                <CssBaseline />
                <main>
-                  <div className={classes.heroContent}>
-                     <Typography className={classes.heroTitle} component="h4" variant="h5" align="left" color="textPrimary" gutterBottom>
-                        Eventos
-                     </Typography>
-                  </div>
-                  <Container className={classes.cardGrid} maxWidth="md">
-                     {events.length > 0 ? (
-                        <Grid container spacing={2}>
-                           {events.map(ev => (
-                              <Grid item key={ev.id} xs={12} sm={6} md={4}>
-                                 <Card className={classes.card}>
-                                    <CardMedia
-                                       className={classes.cardMedia}
-                                       image={(() => {
-                                          switch(ev.eventType.name.toLowerCase()) {
-                                            case 'corrida':
-                                              return 'https://image.freepik.com/vetores-gratis/desportivos-pessoas-correndo-maratona-na-ilustracao-do-parque_1262-18978.jpg';
-                                            case 'warning':
-                                              return '';
-                                            case 'error':
-                                              return '';
-                                            default:
-                                              return '';
-                                          }
-                                        })()}
-                                       title="Image title"
-                                    />
-                                    <CardContent className={classes.cardContent}>
-                                       <Typography gutterBottom variant="h5" component="h2">
-                                          {ev.title}
-                                       </Typography>
-                                       <Typography>
-                                          {ev.description}
-                                       </Typography>
-                                    </CardContent>
-                                    <CardActions>
-                                       <Button size="small" 
-                                               color="primary" 
-                                               onClick={handleOpenModal('paper',ev)}>
-                                          Detalhes
-                                       </Button>
-                                    </CardActions>
-                                 </Card>
-                              </Grid>
-                           ))}
-                        </Grid>
-                     ) : (<Grid container spacing={4}></Grid>)}
-                  </Container>
-                  <Dialog
-                  open={openModal}
-                  onClose={handleCloseModal}
-                  scroll={scroll}
-                  aria-labelledby="scroll-dialog-title"
-                  aria-describedby="scroll-dialog-description"
-                  >
-                     <ModalEvent event={event} 
-                                 scroll={scroll} 
-                                 descriptionElementRef={descriptionElementRef}/>
-                     <DialogActions>
-                        <Button onClick={handleCloseModal} color="primary">Cancel</Button>
-                        <Button onClick={handleCloseModal} color="primary">Subscribe</Button>
-                     </DialogActions>
-                  </Dialog>
+                  <MaterialTable
+                     title="Eventos"
+                     columns={tabela.columns}
+                     data={events}
+                     actions={[
+                        {
+                           icon: 'add',
+                           tooltip: 'Adicionar',
+                           isFreeAction: true,
+                           onClick: (event, rowData) => {
+                                 history.push('/evento') 
+                           }
+                        },
+                        {
+                           icon: 'edit',
+                           tooltip: 'Editar',
+                           onClick: (event, rowData) => {
+                              history.push('/') 
+                           }
+                        },
+                        {
+                           icon: 'delete',
+                           color: 'danger',
+                           tooltip: 'Remover',
+                           onClick: (event, rowData) => {
+                              history.push('/') 
+                           }
+                           
+                        }
+                        ]} 
+                           
+                     localization={{
+                        body: {
+                        emptyDataSourceMessage: 'Nenhum evento cadastrado no sistema'
+                        },
+                        toolbar: {
+                           searchPlaceholder: 'Pesquisar',
+                           searchTooltip: 'Pesquisar',
+                           exportName: 'exportar para CSV',
+                           exportAriaLabel: 'Exportar',
+                           exportTitle: 'Exportar'
+                        },        
+                        header: {
+                           actions: 'Ações',
+                        },
+                        pagination: {
+                           labelRowsSelect: 'Linhas',
+                           labelDisplayedRows: '{count} eventos / {from}-{to} ',
+                           firstTooltip: 'Primeiro',
+                           previousTooltip: 'Anterior',
+                           nextTooltip: 'Próximo',
+                           lastTooltip: 'Último'
+                        }
+                     }}    
+                     options={{
+                        filtering: true,
+                        exportButton: true
+                     }}
+                  />
                </main>
             </React.Fragment>
          </main>
       </div>
    )
+
+   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

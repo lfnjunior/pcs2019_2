@@ -5,8 +5,9 @@ import PrivateRoute from './Services/privateRoute'
 import PublicRoute from './Services/publicRoute'
 import Login from './Pages/Public/Login/Login'
 import NewUser from './Pages/Public/NewUser/NewUser'
-//import Dashboard from './Pages/Private/Dashboard/Dashboard'
+import Dashboard from './Pages/Private/Dashboard/Dashboard'
 import User from './Pages/Private/User/User'
+import Event from './Pages/Private/Evento/Event'
 
 export default function Routes() {
    return (
@@ -15,9 +16,9 @@ export default function Routes() {
             <Switch>
                <PublicRoute component={Login} restricted={true} path="/" exact />
                <PublicRoute component={NewUser} restricted={true} path="/newuser" exact />
-               {/* <PrivateRoute component={Dashboard} path="/dashboard" exact />
-               <PrivateRoute component={User} path="/user" exact /> */}
-               <PrivateRoute component={User} path="/dashboard" exact />
+               <PrivateRoute component={Dashboard} path="/dashboard" exact />
+               <PrivateRoute component={User} path="/user" exact /> 
+               <PrivateRoute component={Event} path="/evento" exact /> 
             </Switch>
          </BrowserRouter>
       </SnackbarProvider>
