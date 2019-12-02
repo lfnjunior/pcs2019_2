@@ -124,7 +124,7 @@ module.exports = {
          neighborhood: event.neighborhood,
          referencePoint: event.referencePoint ? event.referencePoint : undefined,
          description: event.description ? event.description : undefined,
-         status: event.status ? event.status : undefined,
+         status: event.status,
          eventType: this.returnEventType(eventType),
          user: this.returnUser(user, false),
          participant: this.participantsInEvent(event.participant)

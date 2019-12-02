@@ -38,8 +38,7 @@ const useStyles = makeStyles(theme => ({
       display: 'none'
    },
    title: {
-      flexGrow: 1,
-      fontSize: 14,
+      flexGrow: 1
    },
    drawerPaper: {
       position: 'relative',
@@ -68,6 +67,10 @@ const useStyles = makeStyles(theme => ({
       overflow: 'auto'
    },
    container: {
+      paddingTop: theme.spacing(2),
+      paddingBottom: theme.spacing(2)
+   },
+   containerForm: {
       paddingTop: theme.spacing(2),
       paddingBottom: theme.spacing(2)
    },
@@ -117,13 +120,43 @@ const useStyles = makeStyles(theme => ({
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      minWidth: 275,
     },
     cardMedia: {
       paddingTop: '56.25%', 
     },
     cardContent: {
       flexGrow: 1,
+    },
+    paperCad: {
+      marginTop: theme.spacing(1),
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    },
+    avatar: {
+      margin: theme.spacing(1),
+      backgroundColor: theme.palette.secondary.main
+    },
+    form: {
+      width: '100%',
+      marginTop: theme.spacing(3)
+    },
+    submit: {
+      margin: theme.spacing(3, 0, 2)
+    },
+    date: {
+      border: '1px solid #aaa',
+      padding:  '2%',
+      paddingLeft: theme.spacing(1.5),
+      margin: '4.5px',
+      borderRadius: '6px'
+    },
+    larguraCampo: {
+       width: '100%'
+    },
+    grade:{
+      padding: theme.spacing(1)   
     }
+
 }))
 export default useStyles

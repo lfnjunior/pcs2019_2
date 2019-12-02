@@ -77,7 +77,7 @@ module.exports = {
       }
 
       let retPart = {
-        id: participant.IdParticipant,
+        id: participantId,
         userId: participant.userId.idUser,
         eventoId: participant.eventoId.idEvent,
         registrationDate: moment(participant.registrationDate).format('YYYY-MM-DDTHH:mm:ss.sssZ')

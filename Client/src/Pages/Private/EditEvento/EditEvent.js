@@ -36,15 +36,14 @@ import { mainListItems } from "../../../Components/ListItems";
 import { doLogout } from "../../../Services/utils";
 import api from "../../../Services/api";
 
-export default function Event({ history }) {
+export default function EditEvent({ history, match }) {
   const [openListItens, setOpenListItens] = React.useState(false);
   const { enqueueSnackbar } = useSnackbar(); //success, error, warning, info, or default
   const [loading, setLoading] = React.useState(false);
   const [eventTypes, setEventTypes] = useState([{ id: 0, name: "" }]);
   const [select, setSelect] = useState(false);
 
-  const [idUser, setIdUser] = useState(0);
-  const [title, setTitle] = useState("");
+  const [idEvent] = useState(match.params.idEvent);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [street, setStreet] = useState("");
@@ -53,6 +52,7 @@ export default function Event({ history }) {
   const [referencePoint, setReferencePoint] = useState("");
   const [description, setDescription] = useState("");
   const [eventType, setEventType] = useState("");
+  const [title, setTitle] = useState("");
   const [status] = useState(true);
 
   const classes = useStyles();
@@ -63,7 +63,9 @@ export default function Event({ history }) {
       persist: false,
       preventDuplicate: true
     };
-    enqueueSnackbar(msg, snack);
+    if (msg) {
+      enqueueSnackbar(msg, snack);
+    }
   }
 
   const handleDrawerOpen = () => {
@@ -88,6 +90,54 @@ export default function Event({ history }) {
   };
 
   useEffect(() => {
+    loadEvent();
+  }, [idEvent]);
+
+  async function loadEvent() {
+    let token = localStorage.getItem("token");
+    console.log(`Envio GET => /event/${idEvent}`);
+    console.log({ headers: { token: token } });
+    if (token) {
+      await api
+        .get(`/event/${idEvent}`, { headers: { token: token } })
+        .then(response => {
+          console.log(`Resposta GET => /event/${idEvent}:`);
+          console.log(response.status);
+          console.log(response.data);
+          if (response.status === 200) {
+            setStartDate(response.data.startDate);
+            setEndDate(response.data.endDate);
+            setStreet(response.data.street);
+            setCity(response.data.city);
+            setNeighborhood(response.data.neighborhood);
+            setEventType(response.data.eventType.id);
+            if (response.data.referencePoint) {
+              setReferencePoint(response.data.referencePoint);
+            }
+            if (response.data.description) {
+              setDescription(response.data.description);
+            }
+            setTitle(response.data.title);
+          }
+        })
+        .catch(function(error) {
+          console.log(`Resposta GET => /event/${idEvent}:`);
+          console.log(error.response.status);
+          console.log(error.response.data);
+          if (error.response) {
+            if (error.response.status === 400) {
+              this.snack(error.response.data.message);
+            }
+          }
+        });
+    } else {
+      this.snack(
+        "Não foi encontrado token ou id do evento armazenados localmente"
+      );
+    }
+  }
+
+  useEffect(() => {
     async function loadEventTypes() {
       let token = localStorage.getItem("token");
       console.log(`Envio GET => /tipoEvento`);
@@ -101,7 +151,6 @@ export default function Event({ history }) {
             console.log(response.data);
             if (response.status === 200) {
               setEventTypes(response.data);
-              setIdUser(localStorage.getItem("userId"));
             }
           })
           .catch(function(error) {
@@ -135,26 +184,26 @@ export default function Event({ history }) {
     else if (city === "") snack("Campo Cidade é obrigatório");
     else {
       let body = {
+        id: idEvent,
         title: title,
         startDate: moment(startDate).format("YYYY-MM-DDTHH:mm:ss.sssZ"),
         endDate: moment(endDate).format("YYYY-MM-DDTHH:mm:ss.sssZ"),
         street: street,
         neighborhood: neighborhood,
         city: city,
-        ownerId: idUser,
         eventTypeId: eventType,
         referencePoint: referencePoint ? referencePoint : null,
         description: description ? description : null,
         status: status
       };
       let config = { headers: { Token: localStorage.getItem("token") } };
-      console.log(`Envio POST => /event :`);
+      console.log(`Envio PUT => /event :`);
       console.log(body);
       console.log(config);
       await api
-        .post("/event", body, config)
+        .put("/event", body, config)
         .then(response => {
-          console.log("Resposta POST => /event :");
+          console.log("Resposta PUT => /event :");
           console.log(response.status);
           console.log(response.data);
           if (response.status === 200) {
@@ -162,15 +211,15 @@ export default function Event({ history }) {
           }
         })
         .catch(function(error) {
-          console.log("Resposta POST => /event :");
+          console.log("Resposta PUT => /event :");
           console.log(error.response.status);
           console.log(error.response.data);
           if (error.response.status === 400) {
             snack(error.response.data.message);
+            setLoading(prevLoading => !prevLoading);
           }
         });
     }
-    setLoading(prevLoading => !prevLoading);
   }
 
   return (
@@ -243,23 +292,22 @@ export default function Event({ history }) {
                   onChange={event => setTitle(event.target.value)}
                   id="title"
                   label="Título do Evento"
-                  autoFocus/>
+                  autoFocus
+                />
               </Grid>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <div className={classes.date}>
                     <MuiPickersUtilsProvider
                       utils={DateFnsUtils}
-                      locale={ptLocale}
-                    >
+                      locale={ptLocale}>
                       <KeyboardDateTimePicker
                         value={startDate}
                         onChange={setStartDate}
                         label="Data de início"
                         minDate={new Date("01/01/0100 01:00")}
                         format="dd/MM/yyyy hh:mm"
-                        className={classes.larguraCampo}
-                      />
+                        className={classes.larguraCampo}/>
                     </MuiPickersUtilsProvider>
                   </div>
                 </Grid>
@@ -267,8 +315,7 @@ export default function Event({ history }) {
                   <div className={classes.date}>
                     <MuiPickersUtilsProvider
                       utils={DateFnsUtils}
-                      locale={ptLocale}
-                    >
+                      locale={ptLocale}>
                       <KeyboardDateTimePicker
                         value={endDate}
                         onChange={setEndDate}
@@ -344,9 +391,9 @@ export default function Event({ history }) {
               <Grid item xs={12}>
                 <div className={classes.date}>
                   <FormControl className={classes.larguraCampo}>
-                    <InputLabel id="eventType">Eventos</InputLabel>
+                    <InputLabel id="event-type-label">Eventos</InputLabel>
                     <Select
-                      id="eventType"
+                      id="event-type"
                       open={select}
                       onClose={selectClose}
                       onOpen={selectOpen}

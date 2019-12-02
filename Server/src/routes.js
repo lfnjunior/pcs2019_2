@@ -20,7 +20,7 @@ routes.get('/user/:userId', auth, UserController.getUserById)
 routes.delete('/user/:userId', auth, UserController.deleteUser)
 routes.post('/user/login', AuthController.loginUser)
 
-routes.post('/tipoEvento', auth, EventTypeController.addEventType)
+routes.post('/tipoEvento', EventTypeController.addEventType)
 routes.get('/tipoEvento', auth, EventTypeController.getTipoEvento)
 
 routes.get('/event', auth, EventController.getEvent)

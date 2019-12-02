@@ -45,24 +45,24 @@ module.exports = {
   async updateUsuario(req, res) {
     try {
       //valida as entradas
-      let updtUser = await Utils.validateInput(req, OB, true)
+      let updtUser = await Utils.validateInput(req, OB, false)
       
-      let idUser = req.body.idUser
+      updtUser.idUser = req.body.idUser
 
       if (updtUser.validationMessage) {
         return Utils.retErr(res, updtUser.validationMessage)
       }
       //valida se já existe user com o email
-      let userExist = await User.findOne({ $and: [{ email: updtUser.email }, { idUser: { $ne: updtUser.idUser } }] })
-      if (userExist) {
-        return Utils.retErr(res, Msgs.msg(1, 'email'))
-      }
+      // let userExist = await User.findOne({ $and: [{ email: updtUser.email }, { idUser: { $ne: updtUser.idUser } }] })
+      // if (userExist) {
+      //   return Utils.retErr(res, Msgs.msg(1, 'email'))
+      // }
 
       //updtUser.idUser => é o id do usuário que foi solicitado alterar
       //idUser => é o id do usuário que foi solicitou a alteração
-      if (updtUser.idUser != idUser) {
-        return Utils.retErr(res, `Usuário id ${idUser} não está autorizado a atualizar o usuário ${updtUser.idUser}` )
-      }
+      // if (updtUser.idUser != updtUser.id) {
+      //   return Utils.retErr(res, `Usuário id ${updtUser.id} não está autorizado a atualizar o usuário ${updtUser.idUser}` )
+      // }
 
       //atualiza user
       User.updateOne(

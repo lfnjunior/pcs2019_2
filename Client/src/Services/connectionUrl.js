@@ -1,6 +1,7 @@
-const IP = '127.0.0.1';
-const PORT = ':3001';
-const SSL = '';
+const IP = 'api.lfnjunior.tk';
+//const IP = '10.20.3.195';
+const PORT = '';
+const SSL = 's';
 
 const connectionUrl = `http${SSL}://${IP}${PORT}`;
 

@@ -16,6 +16,9 @@ module.exports = {
       if (newEvent.validationMessage) {
         return Utils.retErr(res, newEvent.validationMessage)
       }
+      if (!newEvent.ownerId) {
+        return Utils.retErr(res, 'ownerId é obrigatório!')
+      }
 
       //consulta id do EventType
       let eventType = await EventType.findOne({ idEventType: newEvent.eventTypeId })
@@ -51,6 +54,8 @@ module.exports = {
         return Utils.retErr(res, updtEvent.validationMessage)
       }
 
+      updtEvent.ownerId = req.body.idUser
+
       //consulta id do EventType
       let eventType = await EventType.findOne({ idEventType: updtEvent.eventTypeId })
       if (!eventType) {
@@ -63,12 +68,21 @@ module.exports = {
       if (!user) {
         return Utils.retErr(res, Msgs.msg(5, 'User', updtEvent.ownerId))
       }
+      
       updtEvent.ownerId = user._id
 
       //consulta id do Event
-      let event = await Event.findOne({ idEvent: updtEvent.idEvent }, '_id')
+      let event = await Event.findOne({ idEvent: updtEvent.idEvent }).populate('ownerId')
       if (!event) {
         return Utils.retErr(res, Msgs.msg(5, 'Event', updtEvent.idEvent))
+      }
+      
+      if (event.status == false) {
+        return Utils.retErr(res, `O ${OB} = ${updtEvent.idEvent} está cancelado!`)
+      }
+
+      if (event.ownerId.idUser !== req.body.idUser) {
+        return Utils.retErr(res, `O usuário ${req.body.idUser} não é o criador desse evento e não pode altera-lo.`)
       }
 
       //consulta os participantes no evento
@@ -110,27 +124,41 @@ module.exports = {
       }
 
       //consulta id do Event
-      let event = await Event.findOne({ idEvent: eventId }, '_id')
+      let event = await Event.findOne({ idEvent: eventId }).populate('ownerId')
       if (!event) {
         return Utils.retErr(res, Msgs.msg(5, OBJ, eventId))
       }
 
-      //verifica em participant se já existe algum user Vinculado
-      //Caso exista bloqueia a exclusão
-      let participants = await Participant.find({ eventoId: event._id }, '_id')
-      if (participants.length > 0) {
-        return Utils.retErr(res, Msgs.msg(11, OBJ, eventId, 'Participant'))
+      if (event.status == false) {
+        return Utils.retErr(res, `O ${OB} = ${updtEvent.idEvent} já está cancelado!`)
+      }
+      
+      if (event.ownerId.idUser !== req.body.idUser) {
+        return Utils.retErr(res, `O usuário ${req.body.idUser} não é o criador desse evento e não pode cancela-lo.`)
       }
 
-      Event.deleteOne({ idEvent: eventId }, function(err, doc) {
-        if (err) {
-          return Utils.retErr(res, Msgs.msg(2, 'deletar', OBJ, err.message))
-        } else if (doc.deletedCount === 0) {
-          return Utils.retErr(res, Msgs.msg(5, OBJ, eventId))
-        } else {
-          return Utils.retOk(req, res, { message: Msgs.msg(6, OBJ, eventId) })
-        }
-      })
+      event.status = false
+
+      await event.save()
+      
+      return Utils.retOk(req, res, { message: `O ${OB} está cancelado!` })
+
+      //verifica em participant se já existe algum user Vinculado
+      //Caso exista bloqueia a exclusão
+      // let participants = await Participant.find({ eventoId: event._id }, '_id')
+      // if (participants.length > 0) {
+      //   return Utils.retErr(res, Msgs.msg(11, OBJ, eventId, 'Participant'))
+      // }
+
+      // Event.deleteOne({ idEvent: eventId }, function(err, doc) {
+      //   if (err) {
+      //     return Utils.retErr(res, Msgs.msg(2, 'deletar', OBJ, err.message))
+      //   } else if (doc.deletedCount === 0) {
+      //     return Utils.retErr(res, Msgs.msg(5, OBJ, eventId))
+      //   } else {
+      //     return Utils.retOk(req, res, { message: Msgs.msg(6, OBJ, eventId) })
+      //   }
+      // })
     } catch (err) {
       return Utils.retErr(res, Msgs.msg(3, 'deleteEvent', err.message))
     }
@@ -167,7 +195,6 @@ module.exports = {
       }
 
       event.participant = retParticipants
-
       return Utils.retOk(req, res, Utils.returnEvent(event, event.eventTypeId, event.ownerId))
     } catch (err) {
       return Utils.retErr(res, Msgs.msg(3, 'getEventById', err.message))

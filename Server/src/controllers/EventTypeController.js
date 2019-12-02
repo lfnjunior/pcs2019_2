@@ -35,7 +35,7 @@ module.exports = {
             if (err) {
                return Utils.retErr(res, Msgs.msg(8, 'consultar', OBJ, err.message))
             } else if (eventTypes.length === 0) {
-               return Utils.retErr(res, Msgs.msg(9, OBJ, err.message))
+               return Utils.retOk(req, res, [])
             } else {
                return Utils.retOk(req, res, Utils.returnEventTypes(eventTypes))
             }

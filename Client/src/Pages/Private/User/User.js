@@ -143,7 +143,7 @@ export default function User({ history }) {
       else {
          let bdt = birthdate ? moment(birthdate).format('YYYY-MM-DDTHH:mm:ss.sssZ') : null
          let body = {
-            id: idUser,
+            //id: idUser,
             username: username,
             password: password,
             email: email,

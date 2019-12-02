@@ -1,12 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const allowCors = require('./config/cors')
 const cors = require("cors");
 
 const routes = require("./routes");
 
-const PORT_LISTENING = 3001;
-const DB_HOST = "35.247.198.63";
+const PORT_LISTENING = 3000;
+const DB_HOST = "api.lfnjunior.tk";
 const DB_NAME = "pcs2019_2";
 
 const app = express();

@@ -54,7 +54,7 @@
             },
             {
                "name": "ownerId",
-               "required": true,
+               "required": false,
                "type": "objectReference"
             },
             {

@@ -1,0 +1,30 @@
+version: "3.3"
+# https://docs.traefik.io/v2.0/user-guides/docker-compose/acme-tls/
+services:
+
+  traefik:
+    image: "traefik:v2.0.0-rc3"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.traefik.acme.tlschallenge=true"
+      - "--certificatesresolvers.traefik.acme.email=leonaldofnunes@gmail.com"
+      - "--certificatesresolvers.traefik.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  pcs2019-2:
+    image: "containous/pcs2019"
+    container_name: "pcs2019"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pcs2019-2.rule=Host(`api.lfnjunior.tk`)"
+      - "traefik.http.routers.pcs2019-2.entrypoints=websecure"
+      - "traefik.http.routers.pcs2019-2.tls.certresolver=traefik"

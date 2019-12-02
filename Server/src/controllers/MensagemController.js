@@ -18,8 +18,19 @@ module.exports = {
 
          //consulta id do Participant
          let participant = await Participant.findOne({ idParticipant: newMessage.participantId }, '_id')
+         .populate('eventoId')
+         .populate('userId')
+
          if (!participant) {
             return Utils.retErr(res, Msgs.msg(5, 'Participant', newMessage.participantId))
+         }
+      
+         if (participant.eventoId.status == false) {
+            return Utils.retErr(res, `O ${OB} = ${participant.eventoId.idEvent} está cancelado!`)
+         }
+
+         if (participant.userId.idUser !== req.body.idUser) {
+            return Utils.retErr(res, `O usuário ${req.body.idUser} não é está participando do evento e não pode enviar mensagens.`)
          }
 
          newMessage.participantId = participant._id
@@ -90,8 +101,9 @@ module.exports = {
          }
 
          //consulta participantes
-         let participants = await Participant.find({ eventoId: event._id })
-         if (!participants) {
+         let participants = [] 
+         participants = await Participant.find({ eventoId: event._id })
+         if (participants.length <= 0) {
             return Utils.retErr(res, 'Este evento não possui nenhum participante, portanto não tem nenhuma mensagem.')
          }
 
@@ -101,15 +113,17 @@ module.exports = {
          }
 
          //consulta mensagens dos participantes no evento
-         let mensagens = await Message.find({ participantId: { $in: allIdsParticipants } }).populate({
+         let mensagens = []
+         mensagens = await Message.find({ participantId: { $in: allIdsParticipants } }).populate({
             path: 'participantId',
             populate: {
                path: 'userId',
                model: 'User'
             }
          })
-         if (mensagens.length === 0) {
-            return Utils.retErr(res, 'Este evento não possui nenhum participante, portanto não tem nenhuma mensagem.')
+
+         if (mensagens.length <= 0) {
+            return Utils.retOk(req, res, [])
          }
 
          let ret = []

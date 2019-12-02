@@ -11,11 +11,13 @@ import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import MaterialTable from 'material-table';
+import { useSnackbar } from 'notistack'
 
 import clsx from 'clsx'
 import useStyles from './useStyles'
 import { mainListItems } from '../../../Components/ListItems'
 import { doLogout } from '../../../Services/utils'
+import moment from 'moment'
 import api from '../../../Services/api'
 
 
@@ -23,7 +25,18 @@ export default function Dashboard({ history }) {
    const classes = useStyles()
    const [openListItens, setOpenListItens] = React.useState(false)
    const [events, setEvents] = useState([]);  
+   const { enqueueSnackbar } = useSnackbar() //success, error, warning, info, or default
 
+   async function snack(msg, v = 'error') {
+      let snack = {
+         variant: v, //success, error, warning, info, or default
+         persist: false,
+         preventDuplicate: true
+      }
+      if (msg) {
+          enqueueSnackbar(msg, snack)
+      }
+   }
 
    const handleDrawerOpen = () => {
       setOpenListItens(true)
@@ -39,13 +52,62 @@ export default function Dashboard({ history }) {
    }
    
    useEffect(() => {
-      async function loadEvents() {
-         let token = localStorage.getItem('token')
-         const response = await api.get('/event', { headers: { token: token } })
-         setEvents(response.data);
-      }
       loadEvents()
    }, []) 
+
+   async function loadEvents() {
+      let token = localStorage.getItem('token')
+      const response = await api.get('/event', { headers: { token: token } })
+      let evts = response.data
+      for (let i = 0; i < evts.length; i++) {
+         if (evts[i].status === true) {
+            evts[i].situacao = 'Ativo'
+         } else if (evts[i].status === false) {
+            evts[i].situacao = 'Cancelado'
+         }
+         evts[i].startDate = moment(evts[i].startDate).format('DD/MM/YYYY - HH:mm')
+         evts[i].endDate = moment(evts[i].endDate).format('DD/MM/YYYY - HH:mm')
+      }
+      setEvents(evts);
+      //console.log(evts)
+   }
+
+  useEffect(() => {
+      const interval = setInterval(() => {
+         console.log(`Consulta GET => /event `)
+         let token = localStorage.getItem('token')
+         api.get('/event', { headers: { token: token } }).then(response => {
+            // console.log(`Resposta GET => /event :`)
+            // console.log(response.status)
+            // console.log(response.data)
+            if (response.status === 200) {
+               let evts = response.data
+               for (let i = 0; i < evts.length; i++) {
+                  if (evts[i].status === true) {
+                     evts[i].situacao = 'Ativo'
+                  } else if (evts[i].status === false) {
+                     evts[i].situacao = 'Cancelado'
+                  }
+                  evts[i].startDate = moment(evts[i].startDate).format('DD/MM/YYYY - HH:mm')
+                  evts[i].endDate = moment(evts[i].endDate).format('DD/MM/YYYY - HH:mm')
+               }
+               setEvents(evts)
+               //console.log(evts)
+            }
+         })
+         .catch(function (error) {
+            // console.log(`Resposta GET => /event:`)
+            // console.log(error.response.status)
+            // console.log(error.response.data)
+            if (error.response) {
+               if (error.response.status === 400) {
+                  this.snack(error.response.data.message)
+               }
+            }
+         })
+      }, 5000);
+      return () => clearInterval(interval);
+   });
 
    const descriptionElementRef = React.useRef(null);
    useEffect(() => {
@@ -61,7 +123,9 @@ export default function Dashboard({ history }) {
         { title: 'Nome', field: 'title' },
         { title: 'Data de Início', field: 'startDate' },
         { title: 'Data de Términno', field: 'endDate' },
-        { title: 'Cidade', field: 'city' }
+        { title: 'Cidade', field: 'city' },
+        { title: 'Status', field: 'situacao' },
+        { title: 'Criador', field: 'user.username' }
       ]
     });
 
@@ -118,27 +182,150 @@ export default function Dashboard({ history }) {
                            icon: 'add',
                            tooltip: 'Adicionar',
                            isFreeAction: true,
+                           iconProps: {color: 'primary'},
                            onClick: (event, rowData) => {
-                                 history.push('/evento') 
+                              history.push(`/evento`)
+                                 
                            }
                         },
-                        {
-                           icon: 'edit',
-                           tooltip: 'Editar',
-                           onClick: (event, rowData) => {
-                              history.push('/') 
+                        (rowData) => {
+                           return (rowData.status === true)
+                           ? 
+                           {
+                              icon: 'edit',
+                              tooltip: 'Editar',
+                              iconProps: {color: 'primary'},
+                              onClick: (event, rowData) => {
+                                 if (rowData.status) {
+                                    history.push(`/evento/${rowData.id}`)
+                                 } else {
+                                    snack('O evento está cancelado, não é possível editar!')
+                                 }
+                              }
+                           }
+                           :
+                           {
+                              icon: 'edit',
+                              tooltip: 'Editar',
+                              iconProps: {color: 'disabled'},
+                              disabled: true
                            }
                         },
-                        {
-                           icon: 'delete',
-                           color: 'danger',
-                           tooltip: 'Remover',
-                           onClick: (event, rowData) => {
-                              history.push('/') 
+                        (rowData) => {
+                           return (rowData.status === true)
+                           ? 
+                           {
+                              icon: 'cancel',
+                              iconProps: {color: 'error'},
+                              tooltip: 'Cancelar',
+                              onClick: (event, rowData) => {
+                                 if (rowData.status) {
+                                    let config = { headers: { token: localStorage.getItem('token') } }
+                                    console.log(`Envio DELETE => /event/${rowData.id} :`)
+                                    console.log( config )
+                                    api.delete(`/event/${rowData.id}`, config)
+                                       .then(response => {
+                                          console.log(`Resposta DELETE => /event/${rowData.id} :`)
+                                          console.log(response.status)
+                                          console.log(response.data)
+                                          if (response.status === 200) {
+                                             window.location.reload();
+                                          } 
+                                       })
+                                       .catch(function (error) {
+                                          console.log(`Resposta DELETE => /event/${rowData.id} :`)
+                                          console.log(error.response.status)
+                                          console.log(error.response.data)
+                                          if (error.response.status === 400) {
+                                             snack(error.response.data.message)
+                                          }
+                                       })
+                                 } else {
+                                    snack('O evento está cancelado, não é possível cancelar novamente!')
+                                 }
+                              }
                            }
-                           
+                           :{
+                              icon: 'cancel',
+                              iconProps: {color: 'disabled'},
+                              disabled: true,
+                              tooltip: 'Cancelar',
+                           }
+                        },    
+                        (rowData) => {
+                           return (rowData.status === true)
+                             ? 
+                             {
+                              icon: 'check',
+                              iconProps: {color: 'primary'},
+                              disabled: false,
+                              tooltip: 'Participar',
+                              onClick: (event, rowData) => {
+                                 if (rowData.status) {
+                                 let config = { headers: { token: localStorage.getItem('token') } }
+                                 let body = { 
+                                    userId: localStorage.getItem('userId'),
+                                    eventoId: rowData.id
+                                 }
+                                 console.log(`Envio POST => /participant :`)
+                                 console.log( config )
+                                 console.log( body )
+                                 api.post(`/participant` , body , config)
+                                    .then(response => {
+                                       console.log(`Resposta POST => /participant :`)
+                                       console.log(response.status)
+                                       console.log(response.data)
+                                       if (response.status === 200) {
+                                          snack(`Você agora está participando do evento ${rowData.title}`,"success")
+                                       } 
+                                    })
+                                    .catch(function (error) {
+                                       console.log(`Resposta POST => /participant :`)
+                                       console.log(error.response.status)
+                                       console.log(error.response.data)
+                                       if (error.response.status === 400) {
+                                          snack(error.response.data.message)
+                                       }
+                                    })
+                                 } else {
+                                    snack('O evento está cancelado, não é possível participar do evento!')
+                                 }
+                              }
+                             }
+                             : 
+                             {
+                              icon: 'check',
+                              iconProps: {color: 'disabled'},
+                              disabled: true,
+                              tooltip: 'Participar',
+                             }
+                        },
+                         
+                        (rowData) => {
+                           return (rowData.status === true)
+                             ? 
+                             {
+                              icon: 'search',
+                              iconProps: {color: 'primary'},
+                              disabled: false,
+                              tooltip: 'Detalhes',
+                              onClick: (event, rowData) => {
+                                 if (rowData.status) {
+                                    history.push(`/detalhamento/evento/${rowData.id}`)
+                                 } else {
+                                    snack('O evento está cancelado, não é possível detalhar!')
+                                 }
+                              }
+                             }
+                             : 
+                             {
+                              icon: 'search',
+                              iconProps: {color: 'disabled'},
+                              disabled: true,
+                              tooltip: 'Detalhes',
+                             }
                         }
-                        ]} 
+                     ]} 
                            
                      localization={{
                         body: {

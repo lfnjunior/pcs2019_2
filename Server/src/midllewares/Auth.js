@@ -18,8 +18,12 @@ module.exports = async (req, res, next) => {
             return res.status(403).send({ error: 'Token inválido' })
          }
          console.log('Token Recebido')
-         console.log('Corpo da requisição')
-         console.log(req.body)
+         if (req.body == {}){
+            console.log('Requisição sem body')
+         } else {
+            console.log('Corpo da requisição')
+            console.log(req.body)
+         }
          //id do usuário dono do Token
          req.body.idUser = decoded.idUser
          return next()
